@@ -21,6 +21,88 @@
 
 ---
 
+## 🧠 Memory Management Across Conversations
+
+**CRITICAL**: To maintain context across multiple chat sessions and avoid token limit issues:
+
+### Primary Memory File: PROGRESS.md
+Always use `PROGRESS.md` as the single source of truth for project state. This file must be:
+
+1. **Read at the start of EVERY conversation**
+   - Check completion status of all tasks
+   - Understand current phase and progress percentage
+   - Review recent completions and known issues
+   - Identify next steps
+
+2. **Updated after EVERY significant change**
+   - Mark tasks as completed with [x]
+   - Update progress percentages
+   - Add new code statistics (lines, modules)
+   - Record git commit SHAs
+   - Note any blockers or issues discovered
+
+3. **Structure to maintain**:
+   ```markdown
+   ## 🎯 Overall Progress: XX%
+   
+   ### Phase 1: Foundation - XX% Complete
+   #### ✅ COMPLETED
+   - [x] Task with commit SHA
+   
+   #### 🚧 IN PROGRESS
+   - Current task details
+   
+   #### 📋 PENDING
+   - Future tasks
+   
+   ## 📊 Metrics
+   - Code statistics
+   - Dependencies
+   - Git commits
+   
+   ## 🐛 Known Issues
+   
+   ## 🎯 Next Session Goals
+   
+   **Last Updated:** [Date]
+   ```
+
+### When to Update PROGRESS.md
+- ✅ After completing any Phase 1-3 task
+- ✅ After creating new modules or significant files
+- ✅ After git commits to track progress
+- ✅ When discovering bugs or issues
+- ✅ After testing or reaching milestones
+- ✅ At end of work session with "Next Session Goals"
+
+### Benefits
+- **Context persistence**: Any agent can pick up where you left off
+- **Token efficiency**: Avoid re-summarizing entire project history
+- **Progress tracking**: Clear visibility into completion status
+- **Planning**: Next session goals guide immediate work
+- **Accountability**: Track what works and what needs fixing
+
+### Usage Example
+```markdown
+At start of conversation:
+1. Read PROGRESS.md to understand current state
+2. Identify current task from "IN PROGRESS" section
+3. Check "Next Session Goals" for immediate priorities
+4. Review "Known Issues" before implementing
+
+During work:
+1. Mark tasks completed with [x] as you finish them
+2. Update progress percentages
+3. Add new files/modules to code statistics
+
+At end of session:
+1. Update "Last Updated" date
+2. Set clear "Next Session Goals"
+3. Commit PROGRESS.md to git
+```
+
+---
+
 ## Python Development Guidelines
 
 ### Code Style (PEP 8)
