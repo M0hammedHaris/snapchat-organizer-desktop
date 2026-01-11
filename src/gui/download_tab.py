@@ -70,6 +70,7 @@ class DownloadTab(QWidget):
         """Set up the user interface."""
         layout = QVBoxLayout(self)
         layout.setSpacing(15)
+        layout.setContentsMargins(20, 20, 20, 20)
         
         # File selection group
         file_group = self._create_file_selection_group()
@@ -98,7 +99,9 @@ class DownloadTab(QWidget):
             QGroupBox with file selection controls
         """
         group = QGroupBox("📄 File Selection")
+        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 10px; }")
         layout = QVBoxLayout(group)
+        layout.setSpacing(10)
         
         # HTML file selector
         html_layout = QHBoxLayout()
@@ -139,7 +142,9 @@ class DownloadTab(QWidget):
             QGroupBox with configuration controls
         """
         group = QGroupBox("⚙️ Download Settings")
+        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 10px; }")
         layout = QVBoxLayout(group)
+        layout.setSpacing(10)
         
         # Delay configuration
         delay_layout = QHBoxLayout()

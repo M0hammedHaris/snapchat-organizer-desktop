@@ -26,9 +26,10 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QTextEdit,
 )
-from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtCore import Signal, Slot
 
 from .progress_widget import ProgressWidget
+from ..core.organize_worker import OrganizeWorker
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -65,6 +66,11 @@ class OrganizeTab(QWidget):
         """Set up the user interface."""
         layout = QVBoxLayout(self)
         layout.setSpacing(15)
+        layout.setContentsMargins(20, 20, 20, 20)
+        
+        # Instructions header
+        instructions = self._create_instructions_widget()
+        layout.addWidget(instructions)
         
         # Folder selection group
         folder_group = self._create_folder_selection_group()
@@ -90,6 +96,44 @@ class OrganizeTab(QWidget):
         # Add stretch to push everything to top
         layout.addStretch()
     
+    def _create_instructions_widget(self) -> QGroupBox:
+        """Create instructions widget with folder requirements.
+        
+        Returns:
+            QGroupBox with instructions
+        """
+        group = QGroupBox("ℹ️ Quick Start Guide")
+        group.setStyleSheet(
+            "QGroupBox { "
+            "font-weight: bold; "
+            "padding-top: 10px; "
+            "background-color: #e8f4f8; "
+            "border-radius: 6px; "
+            "}"
+        )
+        layout = QVBoxLayout(group)
+        layout.setSpacing(8)
+        
+        instructions_text = QLabel(
+            "<b>Required Folder Structure:</b><br>"
+            "Your Snapchat export folder must contain:<br>"
+            "  • <b>chat_history/json/chat_history.json</b> - Contact message data<br>"
+            "  • <b>chat_media/</b> or <b>chat_media_1/</b>, <b>chat_media_2/</b>, etc. - Media files<br><br>"
+            "<b>What this does:</b> Organizes media files into folders by contact name using intelligent matching."
+        )
+        instructions_text.setWordWrap(True)
+        instructions_text.setStyleSheet(
+            "font-size: 11px; "
+            "color: #2c3e50; "
+            "padding: 8px; "
+            "background-color: white; "
+            "border-radius: 4px; "
+            "font-weight: normal;"
+        )
+        layout.addWidget(instructions_text)
+        
+        return group
+    
     def _create_folder_selection_group(self) -> QGroupBox:
         """Create folder selection group box.
         
@@ -97,7 +141,9 @@ class OrganizeTab(QWidget):
             QGroupBox with folder selection controls
         """
         group = QGroupBox("📂 Folder Selection")
+        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 10px; }")
         layout = QVBoxLayout(group)
+        layout.setSpacing(10)
         
         # Export folder selector
         export_layout = QHBoxLayout()
@@ -138,16 +184,25 @@ class OrganizeTab(QWidget):
             QGroupBox with configuration controls
         """
         group = QGroupBox("⚙️ Matching Settings")
+        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 10px; }")
         layout = QVBoxLayout(group)
+        layout.setSpacing(10)
         
         # Matching strategy info
         info_label = QLabel(
             "3-Tier Matching Strategy:\n"
-            "  Tier 1: Media ID matching (most accurate)\n"
-            "  Tier 2: Single contact on date\n"
-            "  Tier 3: Timestamp proximity matching"
+            "  • Tier 1: Media ID matching (most accurate)\n"
+            "  • Tier 2: Single contact on date\n"
+            "  • Tier 3: Timestamp proximity matching"
         )
-        info_label.setStyleSheet("color: #666; font-size: 11px;")
+        info_label.setStyleSheet(
+            "color: #555; "
+            "font-size: 11px; "
+            "padding: 8px; "
+            "background-color: #f5f5f5; "
+            "border-radius: 4px; "
+            "border: 1px solid #ddd;"
+        )
         layout.addWidget(info_label)
         
         # Timestamp threshold
@@ -203,7 +258,9 @@ class OrganizeTab(QWidget):
             QGroupBox with statistics display
         """
         group = QGroupBox("📊 Matching Statistics")
+        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 10px; }")
         layout = QVBoxLayout(group)
+        layout.setSpacing(10)
         
         self.stats_text = QTextEdit()
         self.stats_text.setReadOnly(True)
@@ -331,22 +388,48 @@ class OrganizeTab(QWidget):
         """Start the organization process."""
         logger.info("Starting organization process...")
         
-        # TODO: Implement organization worker
+        # Get settings
+        export_path = Path(self.export_path_edit.text())
+        output_path = Path(self.output_path_edit.text())
+        threshold = self.threshold_spinbox.value()
+        enable_tier1 = self.enable_tier1_checkbox.isChecked()
+        enable_tier2 = self.enable_tier2_checkbox.isChecked()
+        enable_tier3 = self.enable_tier3_checkbox.isChecked()
+        organize_by_year = self.organize_by_year_checkbox.isChecked()
+        create_report = self.create_debug_report_checkbox.isChecked()
+        
+        # Create and configure worker
+        self._organize_worker = OrganizeWorker(
+            export_path=export_path,
+            output_path=output_path,
+            timestamp_threshold=threshold,
+            enable_tier1=enable_tier1,
+            enable_tier2=enable_tier2,
+            enable_tier3=enable_tier3,
+            organize_by_year=organize_by_year,
+            create_debug_report=create_report,
+        )
+        
+        # Connect signals
+        self._organize_worker.progress_updated.connect(self._on_progress_updated)
+        self._organize_worker.stats_updated.connect(self._on_stats_updated)
+        self._organize_worker.finished.connect(self._on_organization_finished)
+        self._organize_worker.error.connect(self._on_organization_error)
+        
+        # Update UI state
         self._is_organizing = True
         self._update_ui_state()
         
-        # Placeholder - will implement with worker
-        self.progress_widget.set_status("Preparing to organize...")
+        # Clear previous stats
         self.stats_text.clear()
+        self.progress_widget.reset()
+        self.progress_widget.set_status("Starting organization...")
         
-        QMessageBox.information(
-            self,
-            "Coming Soon",
-            "Organization functionality will be implemented next!"
-        )
+        # Start worker
+        self._organize_worker.start()
         
-        self._is_organizing = False
-        self._update_ui_state()
+        logger.info("Organization worker started")
+        self.organize_started.emit()
     
     @Slot()
     def _on_cancel_requested(self):
@@ -365,9 +448,102 @@ class OrganizeTab(QWidget):
         
         if reply == QMessageBox.Yes:
             logger.info("User requested cancel")
-            # TODO: Cancel worker
-            self._is_organizing = False
-            self._update_ui_state()
+            if self._organize_worker:
+                self._organize_worker.cancel()
+    
+    @Slot(int, int, str)
+    def _on_progress_updated(self, current: int, total: int, status: str):
+        """Handle progress updates from worker.
+        
+        Args:
+            current: Current progress value
+            total: Total progress value
+            status: Status message
+        """
+        self.progress_widget.set_progress(current, total)
+        self.progress_widget.set_status(status)
+    
+    @Slot(dict)
+    def _on_stats_updated(self, stats: dict):
+        """Handle statistics updates from worker.
+        
+        Args:
+            stats: Statistics dictionary
+        """
+        total = stats.get("total", 0)
+        organized = stats.get("organized", 0)
+        unmatched = stats.get("unmatched", 0)
+        tier1 = stats.get("tier1", 0)
+        tier2 = stats.get("tier2", 0)
+        tier3 = stats.get("tier3", 0)
+        
+        stats_text = (
+            f"Total files: {total}\\n"
+            f"Organized: {organized}\\n"
+            f"Unmatched: {unmatched}\\n\\n"
+            f"Matching breakdown:\\n"
+            f"  • Tier 1 (Media ID): {tier1}\\n"
+            f"  • Tier 2 (Single Contact): {tier2}\\n"
+            f"  • Tier 3 (Timestamp): {tier3}"
+        )
+        
+        self.stats_text.setPlainText(stats_text)
+    
+    @Slot(bool, str)
+    def _on_organization_finished(self, success: bool, message: str):
+        """Handle organization completion.
+        
+        Args:
+            success: Whether organization succeeded
+            message: Completion message
+        """
+        self._is_organizing = False
+        self._update_ui_state()
+        
+        if success:
+            QMessageBox.information(
+                self,
+                "Organization Complete",
+                message
+            )
+            logger.info("Organization completed successfully")
+            self.organize_completed.emit()
+        else:
+            QMessageBox.warning(
+                self,
+                "Organization Cancelled",
+                message
+            )
+            logger.warning(f"Organization cancelled: {message}")
+            self.organize_cancelled.emit()
+        
+        # Clean up worker
+        if self._organize_worker:
+            self._organize_worker.deleteLater()
+            self._organize_worker = None
+    
+    @Slot(str)
+    def _on_organization_error(self, error_message: str):
+        """Handle organization error.
+        
+        Args:
+            error_message: Error message
+        """
+        self._is_organizing = False
+        self._update_ui_state()
+        
+        QMessageBox.critical(
+            self,
+            "Organization Error",
+            f"An error occurred during organization:\\n\\n{error_message}"
+        )
+        
+        logger.error(f"Organization error: {error_message}")
+        
+        # Clean up worker
+        if self._organize_worker:
+            self._organize_worker.deleteLater()
+            self._organize_worker = None
     
     @Slot()
     def _on_open_output_clicked(self):
