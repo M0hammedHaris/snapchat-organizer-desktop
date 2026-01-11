@@ -1,0 +1,59 @@
+# Snapchat Organizer Desktop - Python Dependencies
+# Python 3.11+ required
+
+# ============================================================================
+# GUI Framework
+# ============================================================================
+PySide6>=6.6.0                 # Qt for Python (LGPL) - Desktop GUI framework
+
+# ============================================================================
+# Database & ORM
+# ============================================================================
+sqlalchemy>=2.0.0              # ORM for SQLite (license, settings, history)
+
+# ============================================================================
+# Image & Video Processing
+# ============================================================================
+Pillow>=10.0.0                 # Image manipulation for overlay compositing
+
+# ============================================================================
+# Networking & HTTP
+# ============================================================================
+requests>=2.31.0               # HTTP requests for downloading memories
+
+# ============================================================================
+# Security & Encryption
+# ============================================================================
+cryptography>=41.0.0           # AES encryption for license storage
+
+# ============================================================================
+# Timezone & GPS Handling
+# ============================================================================
+timezonefinder>=6.0.0          # GPS coordinate → timezone conversion
+pytz>=2023.3                   # Timezone database (Python < 3.9 only, but included for compatibility)
+
+# ============================================================================
+# Platform-specific Dependencies
+# ============================================================================
+pywin32>=305; sys_platform == 'win32'  # Windows file timestamp handling
+
+# ============================================================================
+# Development & Testing
+# ============================================================================
+pytest>=7.4.0                  # Testing framework
+pytest-qt>=4.2.0               # Qt testing utilities
+black>=23.0.0                  # Code formatting
+flake8>=6.0.0                  # Linting
+mypy>=1.0.0                    # Type checking
+
+# ============================================================================
+# Optional (for build/packaging)
+# ============================================================================
+# PyInstaller>=6.0.0           # Standalone executable creation (uncomment when ready to package)
+# altgraph>=0.17               # PyInstaller dependency (uncomment when ready to package)
+
+# ============================================================================
+# External Tools (Not Python packages - must be installed separately)
+# ============================================================================
+# FFmpeg - Video overlay compositing (https://ffmpeg.org/)
+# ExifTool - GPS/EXIF metadata handling (https://exiftool.org/)
