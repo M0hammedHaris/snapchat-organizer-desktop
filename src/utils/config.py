@@ -11,7 +11,7 @@ from typing import Dict, Any
 APP_NAME = "Snapchat Organizer"
 APP_VERSION = "1.0.0-alpha"
 APP_AUTHOR = "Mohammed Haris"
-APP_ORG = "SnapchatOrganizer"
+APP_ORG = "Mac Hive"
 
 # Application directories
 APP_DIR = Path.home() / ".snapchat-organizer"

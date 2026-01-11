@@ -398,7 +398,7 @@ class DownloadTab(QWidget):
         self.progress_widget.update_progress(
             current=progress.downloaded_files + progress.skipped_files,
             total=progress.total_files,
-            status=f"Processing: {progress.current_file}"
+            operation=f"Processing: {progress.current_file}"
         )
     
     @Slot(str)

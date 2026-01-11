@@ -1,1 +1,366 @@
-"""\nSnapchat Memories Downloader Core Module\n\nThis module provides the core download functionality for Snapchat memories,\nrefactored from the CLI version for GUI integration.\n"""\n\nimport os\nimport time\nimport zipfile\nimport requests\nfrom pathlib import Path\nfrom datetime import datetime\nfrom typing import Dict, List, Tuple, Optional\nfrom dataclasses import dataclass\n\nfrom src.utils.logger import get_logger\n\nlogger = get_logger(__name__)\n\n\n@dataclass\nclass DownloadProgress:\n    \"\"\"Track download progress statistics.\"\"\"\n    total_files: int = 0\n    downloaded_files: int = 0\n    skipped_files: int = 0\n    failed_files: int = 0\n    current_file: str = \"\"\n    current_speed: float = 0.0  # files per second\n    eta_seconds: int = 0\n    \n    @property\n    def percentage(self) -> float:\n        \"\"\"Calculate completion percentage.\"\"\"\n        if self.total_files == 0:\n            return 0.0\n        return (self.downloaded_files + self.skipped_files) / self.total_files * 100\n\n\nclass DownloadCore:\n    \"\"\"Core download functionality for Snapchat memories.\n    \n    This class handles the actual download logic, progress tracking,\n    and file management. It is designed to work with both CLI and GUI.\n    \"\"\"\n    \n    def __init__(self, html_file: str, output_dir: str):\n        \"\"\"Initialize the downloader.\n        \n        Args:\n            html_file: Path to memories_history.html from Snapchat export\n            output_dir: Directory where memories will be saved\n        \"\"\"\n        self.html_file = Path(html_file)\n        self.output_dir = Path(output_dir)\n        self.session = requests.Session()\n        self.progress = DownloadProgress()\n        \n        # Progress tracking file\n        self.progress_file = self.output_dir / \"download_progress.json\"\n        self._downloaded_sids: set = set()\n        \n        # Create output directories\n        self._create_output_dirs()\n        \n        logger.info(f\"Initialized DownloadCore: {self.html_file} -> {self.output_dir}\")\n    \n    def _create_output_dirs(self):\n        \"\"\"Create necessary output directory structure.\"\"\"\n        self.output_dir.mkdir(parents=True, exist_ok=True)\n        (self.output_dir / \"images\").mkdir(exist_ok=True)\n        (self.output_dir / \"videos\").mkdir(exist_ok=True)\n        (self.output_dir / \"overlays\").mkdir(exist_ok=True)\n        \n        logger.debug(f\"Created output directories in {self.output_dir}\")\n    \n    def parse_html_for_memories(self) -> List[Dict]:\n        \"\"\"Parse the HTML file to extract memory download URLs.\n        \n        Returns:\n            List of memory dictionaries with download info\n        \"\"\"\n        from bs4 import BeautifulSoup\n        \n        logger.info(f\"Parsing HTML file: {self.html_file}\")\n        \n        if not self.html_file.exists():\n            raise FileNotFoundError(f\"HTML file not found: {self.html_file}\")\n        \n        with open(self.html_file, 'r', encoding='utf-8') as f:\n            soup = BeautifulSoup(f.read(), 'html.parser')\n        \n        memories = []\n        \n        # Find all table rows with download links\n        # Format: <a href=\"download_url\" download=\"filename\">\n        for link in soup.find_all('a', download=True):\n            download_url = link.get('href', '')\n            download_name = link.get('download', '')\n            \n            if not download_url or not download_name:\n                continue\n            \n            # Extract date from filename or surrounding text\n            # Snapchat format: YYYY-MM-DD_HH-MM-SS_UTC.jpg/mp4\n            memory = {\n                'download_url': download_url,\n                'filename': download_name,\n                'sid': self._extract_sid(download_url),\n                'media_type': self._detect_media_type_from_name(download_name),\n                'date': self._extract_date_from_filename(download_name),\n            }\n            \n            # Look for GPS location in surrounding table cells\n            parent_row = link.find_parent('tr')\n            if parent_row:\n                cells = parent_row.find_all('td')\n                for cell in cells:\n                    text = cell.get_text(strip=True)\n                    if ',' in text and any(char.isdigit() for char in text):\n                        # Likely GPS coordinates\n                        memory['location'] = text\n                        break\n            \n            memories.append(memory)\n        \n        logger.info(f\"Found {len(memories)} memories in HTML\")\n        return memories\n    \n    def _extract_sid(self, url: str) -> str:\n        \"\"\"Extract session ID from download URL.\"\"\"\n        # URL format: https://app.snapchat.com/web/deeplink/snapcode?...&sid=XXXXX\n        if 'sid=' in url:\n            return url.split('sid=')[1].split('&')[0]\n        # Use hash of URL as fallback\n        return str(hash(url))\n    \n    def _detect_media_type_from_name(self, filename: str) -> str:\n        \"\"\"Detect media type from filename extension.\"\"\"\n        ext = Path(filename).suffix.lower()\n        if ext in ['.jpg', '.jpeg', '.png', '.heic']:\n            return 'image'\n        elif ext in ['.mp4', '.mov', '.avi']:\n            return 'video'\n        return 'unknown'\n    \n    def _extract_date_from_filename(self, filename: str) -> str:\n        \"\"\"Extract date/time from filename.\"\"\"\n        # Expected format: YYYY-MM-DD_HH-MM-SS_UTC.ext\n        try:\n            # Remove extension and split by underscore\n            name_parts = Path(filename).stem.split('_')\n            if len(name_parts) >= 2:\n                date_part = name_parts[0]  # YYYY-MM-DD\n                time_part = name_parts[1]  # HH-MM-SS\n                return f\"{date_part} {time_part.replace('-', ':')}\"\n        except Exception as e:\n            logger.warning(f\"Could not parse date from filename: {filename} - {e}\")\n        \n        return \"Unknown Date\"\n    \n    def load_progress(self):\n        \"\"\"Load previously downloaded files from progress file.\"\"\"\n        import json\n        \n        if not self.progress_file.exists():\n            logger.info(\"No existing progress file found\")\n            return\n        \n        try:\n            with open(self.progress_file, 'r') as f:\n                data = json.load(f)\n                self._downloaded_sids = set(data.get('downloaded', []))\n                logger.info(f\"Loaded {len(self._downloaded_sids)} previously downloaded files\")\n        except Exception as e:\n            logger.error(f\"Error loading progress file: {e}\")\n    \n    def save_progress(self, sid: str):\n        \"\"\"Save a successfully downloaded file to progress tracking.\n        \n        Args:\n            sid: Session ID of the downloaded file\n        \"\"\"\n        import json\n        \n        self._downloaded_sids.add(sid)\n        \n        try:\n            with open(self.progress_file, 'w') as f:\n                json.dump({'downloaded': list(self._downloaded_sids)}, f, indent=2)\n        except Exception as e:\n            logger.error(f\"Error saving progress: {e}\")\n    \n    def is_downloaded(self, sid: str) -> bool:\n        \"\"\"Check if a file has already been downloaded.\n        \n        Args:\n            sid: Session ID to check\n            \n        Returns:\n            True if already downloaded\n        \"\"\"\n        return sid in self._downloaded_sids\n    \n    def download_memory(self, memory: Dict) -> Tuple[bool, str]:\n        \"\"\"Download a single memory file.\n        \n        Args:\n            memory: Memory dictionary with download info\n            \n        Returns:\n            (success, message) tuple\n        \"\"\"\n        sid = memory['sid']\n        \n        # Check if already downloaded\n        if self.is_downloaded(sid):\n            logger.debug(f\"Skipping {sid} - already downloaded\")\n            return True, \"Already downloaded\"\n        \n        try:\n            # Download the file\n            logger.info(f\"Downloading {memory['filename']}...\")\n            response = self.session.get(memory['download_url'], timeout=60)\n            \n            # Check for errors\n            if response.status_code == 429:\n                logger.warning(\"Rate limited by server\")\n                return False, \"Rate limited - try again later\"\n            \n            response.raise_for_status()\n            \n            # Check content type\n            content_type = response.headers.get('content-type', '')\n            if 'text/html' in content_type:\n                logger.error(\"Received HTML instead of media file\")\n                return False, \"Server error - received HTML\"\n            \n            # Save to temporary file\n            temp_file = self.output_dir / f\"temp_{sid}.download\"\n            with open(temp_file, 'wb') as f:\n                f.write(response.content)\n            \n            # Process the file\n            if zipfile.is_zipfile(temp_file):\n                success = self._extract_zip(temp_file, memory, sid)\n            else:\n                success = self._save_media(temp_file, memory, sid)\n            \n            # Clean up temp file\n            if temp_file.exists():\n                temp_file.unlink()\n            \n            if success:\n                self.save_progress(sid)\n                self.progress.downloaded_files += 1\n                logger.info(f\"Successfully downloaded {memory['filename']}\")\n                return True, \"Downloaded\"\n            else:\n                self.progress.failed_files += 1\n                return False, \"Processing failed\"\n                \n        except requests.RequestException as e:\n            logger.error(f\"Download error for {sid}: {e}\")\n            self.progress.failed_files += 1\n            return False, f\"Network error: {str(e)}\"\n        except Exception as e:\n            logger.error(f\"Unexpected error for {sid}: {e}\")\n            self.progress.failed_files += 1\n            return False, f\"Error: {str(e)}\"\n    \n    def _extract_zip(self, zip_path: Path, memory: Dict, sid: str) -> bool:\n        \"\"\"Extract and save media from ZIP file.\n        \n        Args:\n            zip_path: Path to temporary ZIP file\n            memory: Memory metadata\n            sid: Session ID\n            \n        Returns:\n            True if successful\n        \"\"\"\n        try:\n            with zipfile.ZipFile(zip_path, 'r') as zip_ref:\n                # Extract to temp directory\n                temp_dir = self.output_dir / f\"temp_{sid}_extract\"\n                zip_ref.extractall(temp_dir)\n                \n                # Find the media file (usually the largest file)\n                media_files = list(temp_dir.glob('*'))\n                if not media_files:\n                    logger.warning(f\"No files found in ZIP for {sid}\")\n                    return False\n                \n                # Sort by size, take largest\n                media_file = max(media_files, key=lambda p: p.stat().st_size)\n                \n                # Move to appropriate directory\n                media_type = memory['media_type']\n                if media_type == 'image':\n                    dest_dir = self.output_dir / \"images\"\n                elif media_type == 'video':\n                    dest_dir = self.output_dir / \"videos\"\n                else:\n                    dest_dir = self.output_dir\n                \n                dest_file = dest_dir / memory['filename']\n                media_file.rename(dest_file)\n                \n                # Clean up temp directory\n                import shutil\n                shutil.rmtree(temp_dir, ignore_errors=True)\n                \n                logger.debug(f\"Extracted ZIP to {dest_file}\")\n                return True\n                \n        except Exception as e:\n            logger.error(f\"Error extracting ZIP for {sid}: {e}\")\n            return False\n    \n    def _save_media(self, temp_file: Path, memory: Dict, sid: str) -> bool:\n        \"\"\"Save media file to appropriate directory.\n        \n        Args:\n            temp_file: Path to temporary downloaded file\n            memory: Memory metadata\n            sid: Session ID\n            \n        Returns:\n            True if successful\n        \"\"\"\n        try:\n            media_type = memory['media_type']\n            if media_type == 'image':\n                dest_dir = self.output_dir / \"images\"\n            elif media_type == 'video':\n                dest_dir = self.output_dir / \"videos\"\n            else:\n                dest_dir = self.output_dir\n            \n            dest_file = dest_dir / memory['filename']\n            temp_file.rename(dest_file)\n            \n            logger.debug(f\"Saved media to {dest_file}\")\n            return True\n            \n        except Exception as e:\n            logger.error(f\"Error saving media for {sid}: {e}\")\n            return False\n
+"""
+Snapchat Memories Downloader Core Module
+
+This module provides the core download functionality for Snapchat memories,
+refactored from the CLI version for GUI integration.
+"""
+
+import os
+import time
+import zipfile
+import requests
+from pathlib import Path
+from datetime import datetime
+from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass
+
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+@dataclass
+class DownloadProgress:
+    """Track download progress statistics."""
+    total_files: int = 0
+    downloaded_files: int = 0
+    skipped_files: int = 0
+    failed_files: int = 0
+    current_file: str = ""
+    current_speed: float = 0.0  # files per second
+    eta_seconds: int = 0
+    
+    @property
+    def percentage(self) -> float:
+        """Calculate completion percentage."""
+        if self.total_files == 0:
+            return 0.0
+        return (self.downloaded_files + self.skipped_files) / self.total_files * 100
+
+
+class DownloadCore:
+    """Core download functionality for Snapchat memories.
+    
+    This class handles the actual download logic, progress tracking,
+    and file management. It is designed to work with both CLI and GUI.
+    """
+    
+    def __init__(self, html_file: str, output_dir: str):
+        """Initialize the downloader.
+        
+        Args:
+            html_file: Path to memories_history.html from Snapchat export
+            output_dir: Directory where memories will be saved
+        """
+        self.html_file = Path(html_file)
+        self.output_dir = Path(output_dir)
+        self.session = requests.Session()
+        self.progress = DownloadProgress()
+        
+        # Progress tracking file
+        self.progress_file = self.output_dir / "download_progress.json"
+        self._downloaded_sids: set = set()
+        
+        # Create output directories
+        self._create_output_dirs()
+        
+        logger.info(f"Initialized DownloadCore: {self.html_file} -> {self.output_dir}")
+    
+    def _create_output_dirs(self):
+        """Create necessary output directory structure."""
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        (self.output_dir / "images").mkdir(exist_ok=True)
+        (self.output_dir / "videos").mkdir(exist_ok=True)
+        (self.output_dir / "overlays").mkdir(exist_ok=True)
+        
+        logger.debug(f"Created output directories in {self.output_dir}")
+    
+    def parse_html_for_memories(self) -> List[Dict]:
+        """Parse the HTML file to extract memory download URLs.
+        
+        Returns:
+            List of memory dictionaries with download info
+        """
+        from bs4 import BeautifulSoup
+        import re
+        
+        logger.info(f"Parsing HTML file: {self.html_file}")
+        
+        if not self.html_file.exists():
+            raise FileNotFoundError(f"HTML file not found: {self.html_file}")
+        
+        with open(self.html_file, 'r', encoding='utf-8') as f:
+            soup = BeautifulSoup(f.read(), 'html.parser')
+        
+        memories = []
+        
+        # Find all table rows
+        # Snapchat format: <a onclick="downloadMemories('URL', ...)">Download</a>
+        for row in soup.find_all('tr'):
+            cells = row.find_all('td')
+            if len(cells) < 3:
+                continue
+            
+            # Extract date (first cell)
+            date_text = cells[0].get_text(strip=True) if cells else ""
+            
+            # Extract media type (second cell)
+            media_type_text = cells[1].get_text(strip=True) if len(cells) > 1 else ""
+            
+            # Extract GPS coordinates (third cell)
+            location_text = cells[2].get_text(strip=True) if len(cells) > 2 else ""
+            
+            # Extract download link (fourth cell with onclick)
+            download_link = cells[3].find('a', onclick=True) if len(cells) > 3 else None
+            if not download_link:
+                continue
+            
+            # Parse onclick attribute to get URL
+            # Format: onclick="downloadMemories('https://...', this, true); return false;"
+            onclick = download_link.get('onclick', '')
+            url_match = re.search(r"downloadMemories\('([^']+)'", onclick)
+            if not url_match:
+                continue
+            
+            download_url = url_match.group(1)
+            
+            # Generate filename from date and media type
+            # Format: YYYY-MM-DD_HH-MM-SS_UTC.ext
+            date_clean = date_text.replace(' UTC', '').replace(' ', '_').replace(':', '-')
+            ext = '.mp4' if media_type_text.lower() == 'video' else '.jpg'
+            filename = f"{date_clean}{ext}"
+            
+            memory = {
+                'download_url': download_url,
+                'filename': filename,
+                'sid': self._extract_sid(download_url),
+                'media_type': media_type_text.lower() if media_type_text else 'unknown',
+                'date': date_text,
+                'location': location_text if location_text else None,
+            }
+            
+            memories.append(memory)
+        
+        logger.info(f"Found {len(memories)} memories in HTML")
+        return memories
+    
+    def _extract_sid(self, url: str) -> str:
+        """Extract session ID from download URL."""
+        # URL format: https://app.snapchat.com/web/deeplink/snapcode?...&sid=XXXXX
+        if 'sid=' in url:
+            return url.split('sid=')[1].split('&')[0]
+        # Use hash of URL as fallback
+        return str(hash(url))
+    
+    def _detect_media_type_from_name(self, filename: str) -> str:
+        """Detect media type from filename extension."""
+        ext = Path(filename).suffix.lower()
+        if ext in ['.jpg', '.jpeg', '.png', '.heic']:
+            return 'image'
+        elif ext in ['.mp4', '.mov', '.avi']:
+            return 'video'
+        return 'unknown'
+    
+    def _extract_date_from_filename(self, filename: str) -> str:
+        """Extract date/time from filename."""
+        # Expected format: YYYY-MM-DD_HH-MM-SS_UTC.ext
+        try:
+            # Remove extension and split by underscore
+            name_parts = Path(filename).stem.split('_')
+            if len(name_parts) >= 2:
+                date_part = name_parts[0]  # YYYY-MM-DD
+                time_part = name_parts[1]  # HH-MM-SS
+                return f"{date_part} {time_part.replace('-', ':')}"
+        except Exception as e:
+            logger.warning(f"Could not parse date from filename: {filename} - {e}")
+        
+        return "Unknown Date"
+    
+    def load_progress(self):
+        """Load previously downloaded files from progress file."""
+        import json
+        
+        if not self.progress_file.exists():
+            logger.info("No existing progress file found")
+            return
+        
+        try:
+            with open(self.progress_file, 'r') as f:
+                data = json.load(f)
+                self._downloaded_sids = set(data.get('downloaded', []))
+                logger.info(f"Loaded {len(self._downloaded_sids)} previously downloaded files")
+        except Exception as e:
+            logger.error(f"Error loading progress file: {e}")
+    
+    def save_progress(self, sid: str):
+        """Save a successfully downloaded file to progress tracking.
+        
+        Args:
+            sid: Session ID of the downloaded file
+        """
+        import json
+        
+        self._downloaded_sids.add(sid)
+        
+        try:
+            with open(self.progress_file, 'w') as f:
+                json.dump({'downloaded': list(self._downloaded_sids)}, f, indent=2)
+        except Exception as e:
+            logger.error(f"Error saving progress: {e}")
+    
+    def is_downloaded(self, sid: str) -> bool:
+        """Check if a file has already been downloaded.
+        
+        Args:
+            sid: Session ID to check
+            
+        Returns:
+            True if already downloaded
+        """
+        return sid in self._downloaded_sids
+    
+    def download_memory(self, memory: Dict) -> Tuple[bool, str]:
+        """Download a single memory file.
+        
+        Args:
+            memory: Memory dictionary with download info
+            
+        Returns:
+            (success, message) tuple
+        """
+        sid = memory['sid']
+        
+        # Check if already downloaded
+        if self.is_downloaded(sid):
+            logger.debug(f"Skipping {sid} - already downloaded")
+            return True, "Already downloaded"
+        
+        try:
+            # Download the file
+            logger.info(f"Downloading {memory['filename']}...")
+            response = self.session.get(memory['download_url'], timeout=60)
+            
+            # Check for errors
+            if response.status_code == 429:
+                logger.warning("Rate limited by server")
+                return False, "Rate limited - try again later"
+            
+            response.raise_for_status()
+            
+            # Check content type
+            content_type = response.headers.get('content-type', '')
+            if 'text/html' in content_type:
+                logger.error("Received HTML instead of media file")
+                return False, "Server error - received HTML"
+            
+            # Save to temporary file
+            temp_file = self.output_dir / f"temp_{sid}.download"
+            with open(temp_file, 'wb') as f:
+                f.write(response.content)
+            
+            # Process the file
+            if zipfile.is_zipfile(temp_file):
+                success = self._extract_zip(temp_file, memory, sid)
+            else:
+                success = self._save_media(temp_file, memory, sid)
+            
+            # Clean up temp file
+            if temp_file.exists():
+                temp_file.unlink()
+            
+            if success:
+                self.save_progress(sid)
+                self.progress.downloaded_files += 1
+                logger.info(f"Successfully downloaded {memory['filename']}")
+                return True, "Downloaded"
+            else:
+                self.progress.failed_files += 1
+                return False, "Processing failed"
+                
+        except requests.RequestException as e:
+            logger.error(f"Download error for {sid}: {e}")
+            self.progress.failed_files += 1
+            return False, f"Network error: {str(e)}"
+        except Exception as e:
+            logger.error(f"Unexpected error for {sid}: {e}")
+            self.progress.failed_files += 1
+            return False, f"Error: {str(e)}"
+    
+    def _extract_zip(self, zip_path: Path, memory: Dict, sid: str) -> bool:
+        """Extract and save media from ZIP file.
+        
+        Args:
+            zip_path: Path to temporary ZIP file
+            memory: Memory metadata
+            sid: Session ID
+            
+        Returns:
+            True if successful
+        """
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                # Extract to temp directory
+                temp_dir = self.output_dir / f"temp_{sid}_extract"
+                zip_ref.extractall(temp_dir)
+                
+                # Find the media file (usually the largest file)
+                media_files = list(temp_dir.glob('*'))
+                if not media_files:
+                    logger.warning(f"No files found in ZIP for {sid}")
+                    return False
+                
+                # Sort by size, take largest
+                media_file = max(media_files, key=lambda p: p.stat().st_size)
+                
+                # Move to appropriate directory
+                media_type = memory['media_type']
+                if media_type == 'image':
+                    dest_dir = self.output_dir / "images"
+                elif media_type == 'video':
+                    dest_dir = self.output_dir / "videos"
+                else:
+                    dest_dir = self.output_dir
+                
+                dest_file = dest_dir / memory['filename']
+                media_file.rename(dest_file)
+                
+                # Clean up temp directory
+                import shutil
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                
+                logger.debug(f"Extracted ZIP to {dest_file}")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Error extracting ZIP for {sid}: {e}")
+            return False
+    
+    def _save_media(self, temp_file: Path, memory: Dict, sid: str) -> bool:
+        """Save media file to appropriate directory.
+        
+        Args:
+            temp_file: Path to temporary downloaded file
+            memory: Memory metadata
+            sid: Session ID
+            
+        Returns:
+            True if successful
+        """
+        try:
+            media_type = memory['media_type']
+            if media_type == 'image':
+                dest_dir = self.output_dir / "images"
+            elif media_type == 'video':
+                dest_dir = self.output_dir / "videos"
+            else:
+                dest_dir = self.output_dir
+            
+            dest_file = dest_dir / memory['filename']
+            temp_file.rename(dest_file)
+            
+            logger.debug(f"Saved media to {dest_file}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error saving media for {sid}: {e}")
+            return False
