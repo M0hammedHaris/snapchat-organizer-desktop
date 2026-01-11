@@ -20,6 +20,8 @@ Pillow>=10.0.0                 # Image manipulation for overlay compositing
 # Networking & HTTP
 # ============================================================================
 requests>=2.31.0               # HTTP requests for downloading memories
+beautifulsoup4>=4.12.0         # HTML parsing for memories_history.html
+lxml>=4.9.0                    # XML/HTML parser (faster than html.parser)
 
 # ============================================================================
 # Security & Encryption

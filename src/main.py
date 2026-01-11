@@ -7,6 +7,9 @@ It initializes the Qt application, creates the main window, and starts the event
 import sys
 from pathlib import Path
 
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Qt
 
@@ -28,9 +31,7 @@ def main():
     app.setApplicationVersion(APP_VERSION)
     app.setOrganizationName("SnapchatOrganizer")
     
-    # Enable high DPI scaling
-    app.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-    app.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+    # High DPI scaling is enabled by default in Qt6
     
     # Create main window
     window = MainWindow()

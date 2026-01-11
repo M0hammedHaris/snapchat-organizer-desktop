@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal, Slot
 
 from .progress_widget import ProgressWidget
+from ..core.download_worker import DownloadWorker
 from ..utils.config import (
     DEFAULT_DOWNLOAD_DELAY,
     MIN_DOWNLOAD_DELAY,
@@ -60,6 +61,7 @@ class DownloadTab(QWidget):
         super().__init__(parent)
         
         self._is_downloading = False
+        self._download_worker: Optional[DownloadWorker] = None
         
         self._setup_ui()
         logger.debug("Download tab initialized")
@@ -297,20 +299,35 @@ class DownloadTab(QWidget):
         self._is_downloading = True
         self._set_ui_enabled(False)
         
-        # TODO: Start actual download process in background thread
-        # For now, show a placeholder message
-        self.progress_widget.start(100, "Preparing to download...")
-        QMessageBox.information(
-            self,
-            "Download Started",
-            "Download functionality will be implemented in the next phase.\n\n"
-            "The downloader will parse the HTML file and download all memories "
-            "with the configured settings.",
-        )
+        # Get configuration
+        config = self.get_configuration()
         
-        self._is_downloading = False
-        self._set_ui_enabled(True)
-        self.progress_widget.reset()
+        # Create worker config
+        worker_config = {
+            'html_file': config['html_path'],
+            'output_dir': config['output_path'],
+            'delay': config['delay'],
+            'gps_enabled': config['embed_gps'],
+            'overlay_enabled': config['apply_overlays'],
+            'timezone_enabled': config['convert_timezone'],
+            'year_folders': config['organize_by_year'],
+        }
+        
+        # Create and configure worker
+        self._download_worker = DownloadWorker(worker_config)
+        
+        # Connect signals
+        self._download_worker.progress_updated.connect(self._on_progress_updated)
+        self._download_worker.status_message.connect(self._on_status_message)
+        self._download_worker.file_downloaded.connect(self._on_file_downloaded)
+        self._download_worker.finished.connect(self._on_download_finished)
+        self._download_worker.error.connect(self._on_download_error)
+        
+        # Start progress widget
+        self.progress_widget.start(100, "Starting download...")
+        
+        # Start worker thread
+        self._download_worker.start()
         
         self.download_started.emit()
     
@@ -319,15 +336,13 @@ class DownloadTab(QWidget):
         """Handle cancel request from progress widget."""
         logger.info("Download cancellation requested")
         
-        if not self._is_downloading:
+        if not self._is_downloading or not self._download_worker:
             return
         
-        # TODO: Actually cancel the download
-        self._is_downloading = False
-        self._set_ui_enabled(True)
-        self.progress_widget.set_status("Download cancelled by user")
+        # Stop the worker
+        self._download_worker.stop()
         
-        self.download_cancelled.emit()
+        # Worker will emit finished signal when it stops
     
     @Slot()
     def _on_verify_downloads(self):
@@ -371,3 +386,100 @@ class DownloadTab(QWidget):
             'convert_timezone': self.convert_timezone_checkbox.isChecked(),
             'organize_by_year': self.organize_by_year_checkbox.isChecked(),
         }
+    
+    @Slot(object)
+    def _on_progress_updated(self, progress):
+        """Handle progress update from worker.
+        
+        Args:
+            progress: DownloadProgress object
+        """
+        # Update progress widget
+        self.progress_widget.update_progress(
+            current=progress.downloaded_files + progress.skipped_files,
+            total=progress.total_files,
+            status=f"Processing: {progress.current_file}"
+        )
+    
+    @Slot(str)
+    def _on_status_message(self, message: str):
+        """Handle status message from worker.
+        
+        Args:
+            message: Status message text
+        """
+        logger.info(f"Download status: {message}")
+        self.progress_widget.set_status(message)
+    
+    @Slot(str, bool, str)
+    def _on_file_downloaded(self, filename: str, success: bool, message: str):
+        """Handle file download completion.
+        
+        Args:
+            filename: Downloaded filename
+            success: Whether download succeeded
+            message: Status message
+        """
+        if success and message == "Downloaded":
+            logger.debug(f"Downloaded: {filename}")
+        elif not success:
+            logger.warning(f"Failed to download {filename}: {message}")
+    
+    @Slot(bool, int, int)
+    def _on_download_finished(self, success: bool, downloaded: int, failed: int):
+        """Handle download completion.
+        
+        Args:
+            success: Whether download completed successfully
+            downloaded: Number of files downloaded
+            failed: Number of failed downloads
+        """
+        self._is_downloading = False
+        self._set_ui_enabled(True)
+        
+        if success:
+            self.progress_widget.complete(
+                f"Download complete! {downloaded} new files, {failed} failed"
+            )
+            QMessageBox.information(
+                self,
+                "Download Complete",
+                f"Successfully downloaded {downloaded} memories.\n"
+                f"Failed: {failed}\n\n"
+                f"Files saved to: {self.output_path_edit.text()}"
+            )
+            self.download_completed.emit()
+        else:
+            self.progress_widget.set_status("Download cancelled")
+            self.download_cancelled.emit()
+        
+        # Clean up worker
+        if self._download_worker:
+            self._download_worker.deleteLater()
+            self._download_worker = None
+    
+    @Slot(str)
+    def _on_download_error(self, error_message: str):
+        """Handle download error.
+        
+        Args:
+            error_message: Error message text
+        """
+        self._is_downloading = False
+        self._set_ui_enabled(True)
+        
+        logger.error(f"Download error: {error_message}")
+        
+        QMessageBox.critical(
+            self,
+            "Download Error",
+            f"An error occurred during download:\n\n{error_message}"
+        )
+        
+        self.progress_widget.set_status(f"Error: {error_message}")
+        
+        # Clean up worker
+        if self._download_worker:
+            self._download_worker.deleteLater()
+            self._download_worker = None
+
