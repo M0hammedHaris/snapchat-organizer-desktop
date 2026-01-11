@@ -42,6 +42,9 @@ def main():
     window.remove_tab(0)  # Remove placeholder
     window.add_tab(download_tab, "📥 Download Memories", index=0)
     
+    # Set Download tab as default
+    window.set_current_tab(0)
+    
     # Show window
     window.show()
     

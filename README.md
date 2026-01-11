@@ -4,15 +4,16 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![PySide6](https://img.shields.io/badge/GUI-PySide6-green.svg)](https://doc.qt.io/qtforpython-6/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 
 ---
 
 ## 🎯 Project Overview
 
-**Status:** 🚧 MVP Development (Week 1)  
+**Status:** 🚧 MVP Development - Week 1 (~65% Complete)  
 **Version:** 1.0.0-alpha  
-**Repository:** https://github.com/M0hammedHaris/snapchat-organizer-desktop
+**Repository:** https://github.com/M0hammedHaris/snapchat-organizer-desktop  
+**License:** Proprietary - All Rights Reserved
 
 ### What It Does
 
@@ -250,23 +251,26 @@ git commit -m "docs(readme): update installation instructions"
 
 ## 🤝 Contributing
 
-This is currently a solo project during MVP development. Contributions will be welcomed after initial release.
+This is a proprietary closed-source project. External contributions are not accepted.
 
 ---
 
 ## 📄 License
 
-MIT License - See [LICENSE](LICENSE) for details
+**Proprietary License** - All Rights Reserved  
+Copyright © 2026 Mohammed Haris
+
+This software is licensed for use only. You may not distribute, modify, reverse engineer, or copy this software without explicit permission. See [LICENSE](LICENSE) for full terms.
 
 ---
 
 ## 🙏 Acknowledgments
 
 - Original CLI scripts from [snapchat-memory-downloader](https://github.com/shoeless03/snapchat-memory-downloader)
-- Built with [PySide6](https://doc.qt.io/qtforpython-6/) (Qt for Python)
+- Built with [PySide6](https://doc.qt.io/qtforpython-6/) (Qt for Python, LGPL licensed)
 - Powered by [SQLAlchemy](https://www.sqlalchemy.org/) and [Pillow](https://pillow.readthedocs.io/)
 
 ---
 
-**Last Updated:** January 11, 2026  
+**Last Updated:** January 12, 2026  
 **Maintained by:** [@M0hammedHaris](https://github.com/M0hammedHaris)

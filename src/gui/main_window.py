@@ -115,6 +115,15 @@ class MainWindow(QMainWindow):
         
         logger.debug(f"Added tab: {title}")
     
+    def set_current_tab(self, index: int):
+        """Set the currently active tab.
+        
+        Args:
+            index: Index of tab to activate
+        """
+        self.tab_widget.setCurrentIndex(index)
+        logger.debug(f"Set current tab to index {index}")
+    
     def remove_tab(self, index: int):
         """Remove a tab from the tab widget.
         

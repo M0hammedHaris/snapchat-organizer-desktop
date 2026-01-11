@@ -4,9 +4,16 @@
 
 **Snapchat Organizer Desktop** is a cross-platform desktop application built with Python and PySide6 that organizes Snapchat media exports. The application processes Snapchat data exports, organizes media files by conversation/person, applies metadata (EXIF data, timestamps), removes duplicates, and provides a user-friendly GUI for managing the entire workflow.
 
+**⚠️ LICENSE & INTELLECTUAL PROPERTY**
+- **License**: Proprietary - All Rights Reserved (closed-source)
+- **Copyright**: © 2026 Mohammed Haris
+- This is a commercial product - all code and documentation are confidential
+- Do not suggest open-source practices (e.g., MIT, GPL licenses)
+- Future plans include licensing system and hardware activation
+
 ### Core Technologies
 - **Python 3.11+**: Primary development language
-- **PySide6**: Qt-based GUI framework
+- **PySide6**: Qt-based GUI framework (LGPL licensed, compatible with proprietary use)
 - **SQLAlchemy**: ORM for database operations
 - **Pillow (PIL)**: Image processing and EXIF manipulation
 - **SQLite**: Local database for metadata and application state
@@ -18,6 +25,7 @@
 - Duplicate detection and removal
 - Modern, responsive GUI with progress tracking
 - Cross-platform support (macOS, Windows, Linux)
+- **Default to Download tab on app startup**
 
 ---
 
