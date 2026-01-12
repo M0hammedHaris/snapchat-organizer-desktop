@@ -128,7 +128,7 @@ class OrganizeTab(QWidget):
             "font-weight: bold; "
             "padding-top: 15px; "
             "margin-top: 10px; "
-            "background-color: #e8f4f8; "
+            "background-color: palette(alternate-base); "
             "border-radius: 6px; "
             "}"
         )
@@ -147,9 +147,8 @@ class OrganizeTab(QWidget):
         instructions_text.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         instructions_text.setStyleSheet(
             "font-size: 11px; "
-            "color: #2c3e50; "
             "padding: 12px; "
-            "background-color: white; "
+            "background-color: palette(base); "
             "border-radius: 4px; "
             "font-weight: normal;"
         )
@@ -227,20 +226,20 @@ class OrganizeTab(QWidget):
         
         # Matching strategy info
         info_label = QLabel(
-            "3-Tier Matching Strategy:\n"
-            "  • Tier 1: Media ID matching (most accurate)\n"
-            "  • Tier 2: Single contact on date\n"
-            "  • Tier 3: Timestamp proximity matching"
+            "Probabilistic Scoring-Based Matching:\n"
+            "  • Media ID normalization (exact & fuzzy matching)\n"
+            "  • Time-based clustering for multi-file sends\n"
+            "  • Composite scoring with configurable threshold\n"
+            "  • Enhanced logging with confidence metrics"
         )
         info_label.setWordWrap(True)
         info_label.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         info_label.setStyleSheet(
-            "color: #555; "
             "font-size: 11px; "
             "padding: 12px; "
-            "background-color: #f5f5f5; "
+            "background-color: palette(alternate-base); "
             "border-radius: 4px; "
-            "border: 1px solid #ddd;"
+            "border: 1px solid palette(mid);"
         )
         layout.addWidget(info_label)
         layout.addSpacing(8)
@@ -248,42 +247,63 @@ class OrganizeTab(QWidget):
         # Timestamp threshold
         threshold_layout = QHBoxLayout()
         threshold_layout.setSpacing(8)
-        threshold_label = QLabel("Timestamp threshold:")
+        threshold_label = QLabel("Time window:")
         threshold_label.setMinimumWidth(140)
         threshold_layout.addWidget(threshold_label)
         
         self.threshold_spinbox = QSpinBox()
-        self.threshold_spinbox.setMinimum(30)
-        self.threshold_spinbox.setMaximum(3600)
-        self.threshold_spinbox.setValue(300)
-        self.threshold_spinbox.setSingleStep(30)
+        self.threshold_spinbox.setMinimum(300)
+        self.threshold_spinbox.setMaximum(14400)
+        self.threshold_spinbox.setValue(7200)
+        self.threshold_spinbox.setSingleStep(300)
         self.threshold_spinbox.setSuffix(" seconds")
         self.threshold_spinbox.setToolTip(
-            "Maximum time difference for Tier 3 timestamp matching (default: 5 minutes)"
+            "Time window for Gaussian decay scoring (default: 2 hours / 7200 seconds)"
         )
         threshold_layout.addWidget(self.threshold_spinbox)
         
         threshold_layout.addStretch()
         layout.addLayout(threshold_layout)
         
+        # Match score threshold
+        score_layout = QHBoxLayout()
+        score_layout.setSpacing(8)
+        score_label = QLabel("Match threshold:")
+        score_label.setMinimumWidth(140)
+        score_layout.addWidget(score_label)
+        
+        self.score_spinbox = QSpinBox()
+        self.score_spinbox.setMinimum(30)
+        self.score_spinbox.setMaximum(95)
+        self.score_spinbox.setValue(45)
+        self.score_spinbox.setSingleStep(5)
+        self.score_spinbox.setSuffix("%")
+        self.score_spinbox.setToolTip(
+            "Minimum composite score for match (default: 45%). Higher = more strict."
+        )
+        score_layout.addWidget(self.score_spinbox)
+        
+        score_layout.addStretch()
+        layout.addLayout(score_layout)
+        
         layout.addSpacing(5)
         
-        # Feature toggles
-        self.enable_tier1_checkbox = QCheckBox("Enable Tier 1 (Media ID matching)")
+        # Feature toggles (kept for backwards compatibility)
+        self.enable_tier1_checkbox = QCheckBox("Enable Media ID matching")
         self.enable_tier1_checkbox.setChecked(True)
-        self.enable_tier1_checkbox.setToolTip("Match files by Media ID - most accurate")
+        self.enable_tier1_checkbox.setToolTip("Match files by normalized Media ID (exact & fuzzy)")
         self.enable_tier1_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.enable_tier1_checkbox)
         
-        self.enable_tier2_checkbox = QCheckBox("Enable Tier 2 (Single contact matching)")
+        self.enable_tier2_checkbox = QCheckBox("Enable single contact matching")
         self.enable_tier2_checkbox.setChecked(True)
         self.enable_tier2_checkbox.setToolTip("Match files when only one contact sent media that day")
         self.enable_tier2_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.enable_tier2_checkbox)
         
-        self.enable_tier3_checkbox = QCheckBox("Enable Tier 3 (Timestamp proximity)")
+        self.enable_tier3_checkbox = QCheckBox("Enable timestamp proximity")
         self.enable_tier3_checkbox.setChecked(True)
-        self.enable_tier3_checkbox.setToolTip("Match files by timestamp proximity - use with caution")
+        self.enable_tier3_checkbox.setToolTip("Match files by timestamp proximity with Gaussian decay")
         self.enable_tier3_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.enable_tier3_checkbox)
         
@@ -297,9 +317,15 @@ class OrganizeTab(QWidget):
         
         self.create_debug_report_checkbox = QCheckBox("Create detailed matching report")
         self.create_debug_report_checkbox.setChecked(True)
-        self.create_debug_report_checkbox.setToolTip("Generate a detailed log of matching decisions")
+        self.create_debug_report_checkbox.setToolTip("Generate a detailed log of matching decisions with scores")
         self.create_debug_report_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.create_debug_report_checkbox)
+        
+        self.preserve_originals_checkbox = QCheckBox("Preserve original filenames (.snapchat_original sidecar)")
+        self.preserve_originals_checkbox.setChecked(True)
+        self.preserve_originals_checkbox.setToolTip("Create sidecar files with original metadata")
+        self.preserve_originals_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
+        layout.addWidget(self.preserve_originals_checkbox)
         
         return group
     
@@ -325,7 +351,7 @@ class OrganizeTab(QWidget):
             "padding: 10px; "
             "font-size: 12px; "
             "line-height: 1.4; "
-            "border: 1px solid #ddd; "
+            "border: 1px solid palette(mid); "
             "border-radius: 4px; "
             "}"
         )
@@ -456,22 +482,26 @@ class OrganizeTab(QWidget):
         export_path = Path(self.export_path_edit.text())
         output_path = Path(self.output_path_edit.text())
         threshold = self.threshold_spinbox.value()
+        score_threshold = self.score_spinbox.value() / 100.0  # Convert percentage to 0-1
         enable_tier1 = self.enable_tier1_checkbox.isChecked()
         enable_tier2 = self.enable_tier2_checkbox.isChecked()
         enable_tier3 = self.enable_tier3_checkbox.isChecked()
         organize_by_year = self.organize_by_year_checkbox.isChecked()
         create_report = self.create_debug_report_checkbox.isChecked()
+        preserve_originals = self.preserve_originals_checkbox.isChecked()
         
         # Create and configure worker
         self._organize_worker = OrganizeWorker(
             export_path=export_path,
             output_path=output_path,
             timestamp_threshold=threshold,
+            match_score_threshold=score_threshold,
             enable_tier1=enable_tier1,
             enable_tier2=enable_tier2,
             enable_tier3=enable_tier3,
             organize_by_year=organize_by_year,
             create_debug_report=create_report,
+            preserve_originals=preserve_originals,
         )
         
         # Connect signals
@@ -537,9 +567,10 @@ class OrganizeTab(QWidget):
         total = stats.get("total", 0)
         organized = stats.get("organized", 0)
         unmatched = stats.get("unmatched", 0)
-        tier1 = stats.get("tier1", 0)
-        tier2 = stats.get("tier2", 0)
-        tier3 = stats.get("tier3", 0)
+        low_conf = stats.get("low_confidence", 0)
+        exact_id = stats.get("exact_media_id", 0)
+        fuzzy_id = stats.get("fuzzy_media_id", 0)
+        time_based = stats.get("time_based", 0)
         
         match_rate = (organized / total * 100) if total > 0 else 0
         
@@ -547,13 +578,14 @@ class OrganizeTab(QWidget):
             f"Total files: {total}\n"
             f"Organized: {organized} ({match_rate:.1f}%)\n"
             f"Unmatched: {unmatched}\n\n"
-            f"Matching breakdown:\n"
-            f"  • Tier 1 (Media ID): {tier1}\n"
-            f"  • Tier 2 (Single Contact): {tier2}\n"
-            f"  • Tier 3 (Timestamp): {tier3}\n\n"
-            f"⚠️  IMPORTANT: Results are not 100% accurate.\n"
-            f"Please review the organized folders and verify that\n"
-            f"media files are correctly matched to contacts."
+            f"Match Type Breakdown:\n"
+            f"  • Exact Media ID: {exact_id}\n"
+            f"  • Fuzzy Media ID: {fuzzy_id}\n"
+            f"  • Time-based: {time_based}\n\n"
+            f"Quality Metrics:\n"
+            f"  • Low confidence: {low_conf} (score < 0.8)\n\n"
+            f"⚠️  IMPORTANT: Review matching_report.txt for details.\n"
+            f"Low confidence matches may require manual verification."
         )
         
         self.stats_text.setPlainText(stats_text)

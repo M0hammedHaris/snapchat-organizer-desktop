@@ -34,12 +34,14 @@ class OrganizeWorker(QThread):
         self,
         export_path: Path,
         output_path: Path,
-        timestamp_threshold: int = 300,
+        timestamp_threshold: int = 7200,
+        match_score_threshold: float = 0.45,
         enable_tier1: bool = True,
         enable_tier2: bool = True,
         enable_tier3: bool = True,
         organize_by_year: bool = True,
         create_debug_report: bool = True,
+        preserve_originals: bool = True,
         parent=None,
     ):
         """Initialize the organize worker.
@@ -47,12 +49,14 @@ class OrganizeWorker(QThread):
         Args:
             export_path: Path to Snapchat export folder
             output_path: Path to output folder
-            timestamp_threshold: Maximum seconds for timestamp matching
+            timestamp_threshold: Time window for Gaussian decay scoring (default: 2 hours)
+            match_score_threshold: Minimum composite score for match (default: 0.45)
             enable_tier1: Enable Media ID matching
             enable_tier2: Enable single contact matching
             enable_tier3: Enable timestamp proximity matching
             organize_by_year: Create year subdirectories
             create_debug_report: Generate detailed matching report
+            preserve_originals: Create .snapchat_original sidecar files
             parent: Parent QObject
         """
         super().__init__(parent)
@@ -60,11 +64,13 @@ class OrganizeWorker(QThread):
         self.export_path = Path(export_path)
         self.output_path = Path(output_path)
         self.timestamp_threshold = timestamp_threshold
+        self.match_score_threshold = match_score_threshold
         self.enable_tier1 = enable_tier1
         self.enable_tier2 = enable_tier2
         self.enable_tier3 = enable_tier3
         self.organize_by_year = organize_by_year
         self.create_debug_report = create_debug_report
+        self.preserve_originals = preserve_originals
         
         self.organizer: Optional[OrganizerCore] = None
         
@@ -80,11 +86,13 @@ class OrganizeWorker(QThread):
                 export_path=self.export_path,
                 output_path=self.output_path,
                 timestamp_threshold=self.timestamp_threshold,
+                match_score_threshold=self.match_score_threshold,
                 enable_tier1=self.enable_tier1,
                 enable_tier2=self.enable_tier2,
                 enable_tier3=self.enable_tier3,
                 organize_by_year=self.organize_by_year,
                 create_debug_report=self.create_debug_report,
+                preserve_originals=self.preserve_originals,
                 progress_callback=self._on_progress,
             )
             
@@ -143,19 +151,22 @@ class OrganizeWorker(QThread):
         total = stats.get("total", 0)
         organized = stats.get("organized", 0)
         unmatched = stats.get("unmatched", 0)
-        tier1 = stats.get("tier1", 0)
-        tier2 = stats.get("tier2", 0)
-        tier3 = stats.get("tier3", 0)
+        low_conf = stats.get("low_confidence", 0)
+        exact_id = stats.get("exact_media_id", 0)
+        fuzzy_id = stats.get("fuzzy_media_id", 0)
+        time_based = stats.get("time_based", 0)
         
         success_rate = (organized / total * 100) if total > 0 else 0
         
         message = (
             f"Successfully organized {organized}/{total} files ({success_rate:.1f}%)\n\n"
-            f"Matching breakdown:\n"
-            f"  • Tier 1 (Media ID): {tier1}\n"
-            f"  • Tier 2 (Single Contact): {tier2}\n"
-            f"  • Tier 3 (Timestamp): {tier3}\n"
+            f"Match Type Breakdown:\n"
+            f"  • Exact Media ID: {exact_id}\n"
+            f"  • Fuzzy Media ID: {fuzzy_id}\n"
+            f"  • Time-based: {time_based}\n"
             f"  • Unmatched: {unmatched}\n\n"
+            f"Quality Metrics:\n"
+            f"  • Low confidence matches: {low_conf} (score < 0.8)\n\n"
             f"Files saved to: {self.output_path}"
         )
         
