@@ -18,6 +18,8 @@ APP_DIR = Path.home() / ".snapchat-organizer"
 DB_PATH = APP_DIR / "organizer.db"
 LOG_PATH = APP_DIR / "logs"
 CACHE_PATH = APP_DIR / "cache"
+CONFIG_FILE = APP_DIR / "config.json"
+FIRST_RUN_MARKER = APP_DIR / ".first_run_complete"
 
 # Ensure directories exist
 APP_DIR.mkdir(parents=True, exist_ok=True)
@@ -169,4 +171,150 @@ def can_access_feature(tier: str, feature: str) -> bool:
         # For other types, return True if not None
         return value is not None
     except KeyError:
+        return False
+
+
+def is_first_run() -> bool:
+    """Check if this is the first time running the application.
+    
+    Returns:
+        True if first run, False otherwise
+    """
+    return not FIRST_RUN_MARKER.exists()
+
+
+def mark_first_run_complete() -> None:
+    """Mark the first run as complete."""
+    FIRST_RUN_MARKER.touch()
+    
+
+def should_show_help_on_startup() -> bool:
+    """Check if help dialog should be shown on startup.
+    
+    Reads from config file. Returns True on first run.
+    
+    Returns:
+        True if help should be shown, False otherwise
+    """
+    import json
+    
+    if is_first_run():
+        return True
+        
+    try:
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE, 'r') as f:
+                config = json.load(f)
+                return config.get('show_help_on_startup', False)
+    except Exception:
+        pass
+        
+    return False
+
+
+def set_show_help_on_startup(show: bool) -> None:
+    """Set whether to show help dialog on startup.
+    
+    Args:
+        show: True to show help on startup, False otherwise
+    """
+    import json
+    
+    config = {}
+    try:
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE, 'r') as f:
+                config = json.load(f)
+    except Exception:
+        pass
+        
+    config['show_help_on_startup'] = show
+    
+    try:
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(config, f, indent=2)
+    except Exception:
+        pass
+
+
+def load_settings() -> Dict[str, Any]:
+    """Load user settings from config file.
+    
+    Returns:
+        Dictionary of user settings with defaults applied
+    """
+    import json
+    
+    # Default settings
+    defaults = {
+        'show_help_on_startup': False,
+        'general': {
+            'default_download_path': str(Path.home() / "Downloads"),
+            'default_export_path': str(Path.home() / "Documents" / "Snapchat"),
+            'remember_last_paths': True,
+            'auto_open_output': False,
+            'confirm_operations': True,
+        },
+        'download': {
+            'max_retries': MAX_RETRIES,
+            'timeout_seconds': DEFAULT_TIMEOUT,
+            'delay_seconds': DEFAULT_DOWNLOAD_DELAY,
+            'default_apply_gps': True,
+            'default_apply_overlay': True,
+            'default_convert_timezone': True,
+        },
+        'organize': {
+            'time_window_seconds': DEFAULT_TIMESTAMP_THRESHOLD,
+            'minimum_score': 50,
+            'copy_files': False,
+            'preserve_structure': False,
+            'create_report': True,
+        },
+        'last_paths': {
+            'download_html': '',
+            'download_output': '',
+            'organize_export': '',
+            'organize_output': '',
+            'tools_folder': '',
+        }
+    }
+    
+    # Load existing config
+    try:
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE, 'r') as f:
+                saved_config = json.load(f)
+                # Merge with defaults (saved values override defaults)
+                for section, values in saved_config.items():
+                    if section in defaults and isinstance(values, dict):
+                        defaults[section].update(values)
+                    else:
+                        defaults[section] = values
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Failed to load config file: {e}")
+    
+    return defaults
+
+
+def save_settings(settings: Dict[str, Any]) -> bool:
+    """Save user settings to config file.
+    
+    Args:
+        settings: Dictionary of settings to save
+        
+    Returns:
+        True if saved successfully, False otherwise
+    """
+    import json
+    
+    try:
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(settings, f, indent=2)
+        return True
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to save config file: {e}")
         return False
