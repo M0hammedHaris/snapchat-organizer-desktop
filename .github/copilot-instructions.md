@@ -613,7 +613,8 @@ Use for retrieving up-to-date documentation:
 ### File Naming
 - Python modules: `snake_case.py`
 - Classes: `PascalCase` within files
-- Test files: `test_*.py`
+- Test files: `test_*.py` (must be placed in `tests/` directory)
+- Documentation files: Markdown files in `docs/[feature_name]/` (e.g., `docs/organizer/FEATURE.md`)
 - Configuration: `config.json`, `.env`
 
 ### Directory Structure
@@ -625,13 +626,25 @@ snapchat-organizer-desktop/
 │   ├── workers/           # Background workers
 │   ├── utils/             # Utility functions
 │   └── main.py            # Application entry point
-├── tests/                 # Test suite
+├── tests/                 # Test suite (ALL test files go here: test_*.py)
+│   ├── test_models/       # Model tests
+│   ├── test_ui/           # UI component tests
+│   └── integration/       # Integration tests
 ├── resources/             # Icons, images, stylesheets
-├── docs/                  # Documentation
+├── docs/                  # Documentation (organized by feature)
+│   ├── organizer/         # Organizer feature documentation
+│   ├── downloader/        # Downloader feature documentation
+│   └── BUILD-INSTRUCTIONS.md
 ├── requirements.txt       # Python dependencies
 ├── README.md             # Project documentation
 └── LICENSE               # License file
 ```
+
+**Important File Organization Rules:**
+- ✅ **Test files**: Always place in `tests/` directory, following the `src/` structure
+- ✅ **Documentation**: Always place in `docs/[feature_name]/` subdirectories
+- ❌ **Never** create test files in `src/` directory
+- ❌ **Never** create documentation files in project root (unless README, LICENSE, etc.)
 
 ### Configuration Files
 - Store user preferences in `~/.config/snapchat-organizer/config.json`
@@ -679,7 +692,9 @@ except FileNotFoundError as e:
 
 ### Test Structure
 - Use `pytest` for testing
-- Organize tests in `tests/` directory matching `src/` structure
+- **ALL test files MUST be in `tests/` directory** matching `src/` structure
+- Test file naming: `test_<module_name>.py`
+- Mirror the `src/` structure within `tests/` (e.g., `src/models/media.py` → `tests/test_models/test_media.py`)
 - Use fixtures for common setup
 
 ```python
@@ -920,10 +935,12 @@ When assisting with this project:
 2. **Prefer** signals/slots over direct function calls in PySide6
 3. **Use** context managers for file and database operations
 4. **Follow** the project directory structure
-5. **Write** tests alongside implementation code
-6. **Log** errors instead of using print statements
-7. **Check** for existing similar code before implementing new features
-8. **Suggest** performance optimizations when processing large file sets
+5. **Write** tests alongside implementation code in `tests/` directory
+6. **Create** documentation in `docs/[feature_name]/` subdirectories
+7. **Log** errors instead of using print statements
+8. **Check** for existing similar code before implementing new features
+9. **Suggest** performance optimizations when processing large file sets
+10. **Never** create test files outside `tests/` or docs outside `docs/[feature_name]/`
 
 For questions or clarifications, refer to the project README or ask for specific guidance.
 
