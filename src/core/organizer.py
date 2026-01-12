@@ -8,7 +8,7 @@ import json
 import shutil
 import re
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Callable
 
 from ..utils.logger import get_logger
@@ -29,7 +29,7 @@ class OrganizerCore:
         self,
         export_path: Path,
         output_path: Path,
-        timestamp_threshold: int = 300,
+        timestamp_threshold: int = 3600,
         enable_tier1: bool = True,
         enable_tier2: bool = True,
         enable_tier3: bool = True,
@@ -42,7 +42,7 @@ class OrganizerCore:
         Args:
             export_path: Path to Snapchat export folder
             output_path: Path to output folder for organized media
-            timestamp_threshold: Maximum seconds difference for Tier 3 matching
+            timestamp_threshold: Maximum seconds difference for Tier 3 matching (default: 1 hour)
             enable_tier1: Enable Media ID matching
             enable_tier2: Enable single contact matching
             enable_tier3: Enable timestamp proximity matching
@@ -147,14 +147,23 @@ class OrganizerCore:
                 chats = json.load(f)
             
             # Build media mapping
+            logged_sample = False
             for contact_username, messages in chats.items():
                 for msg in messages:
-                    if msg.get("Media Type") == "MEDIA":
+                    media_type = msg.get("Media Type")
+                    # Check for various media types (sometimes labeled differently in older exports)
+                    if media_type in ["MEDIA", "VIDEO", "IMAGE", "AUDIO"] or (media_type and "MEDIA" in media_type):
                         ts = self._parse_timestamp(msg.get("Created", ""))
                         if ts:
                             media_id = msg.get("Media IDs", "")
                             media_id_hint = self._extract_media_id_hint(media_id)
                             ts_micro = msg.get("Created(microseconds)", 0)
+                            
+                            # Log first Media ID for debugging (only once)
+                            if not logged_sample and media_id:
+                                logger.debug(f"Sample Media ID from JSON: {media_id[:100]}")
+                                logger.debug(f"Extracted hint: {media_id_hint}")
+                                logged_sample = True
                             
                             self.media_map[ts_micro] = {
                                 "contact": contact_username,
@@ -248,11 +257,17 @@ class OrganizerCore:
             int(date_match.group(3)),
         )
         
-        # Find candidates from same day
+        # Find candidates from same day and adjacent days (to handle timezone diffs)
+        target_dates = {
+            file_date.date(),
+            (file_date - timedelta(days=1)).date(),
+            (file_date + timedelta(days=1)).date()
+        }
+        
         candidates = [
             (ts_micro, info)
             for ts_micro, info in self.media_map.items()
-            if info["datetime"].date() == file_date.date()
+            if info["datetime"].date() in target_dates
         ]
         
         if not candidates:
@@ -261,26 +276,52 @@ class OrganizerCore:
         # Tier 1: Media ID matching
         if self.enable_tier1:
             for ts_micro, info in candidates:
-                if info["media_id_hint"] and info["media_id_hint"] in filename:
-                    best_match = (ts_micro, info)
-                    match_reason = f"Tier 1: Media ID match (hint: {info['media_id_hint']})"
-                    match_tier = "tier1"
-                    break
+                if info["media_id_hint"]:
+                    # Try matching both with and without b~ prefix
+                    if (info["media_id_hint"] in filename or 
+                        f"b~{info['media_id_hint']}" in filename):
+                        best_match = (ts_micro, info)
+                        match_reason = f"Tier 1: Media ID match (hint: {info['media_id_hint'][:30]}...)"
+                        match_tier = "tier1"
+                        break
         
         # Tier 2: Single contact on date
-        if not best_match and self.enable_tier2 and len(candidates) == 1:
-            best_match = candidates[0]
-            match_reason = f"Tier 2: Only contact on {file_date.date()}"
+        unique_contacts = {info["contact"] for _, info in candidates}
+        if not best_match and self.enable_tier2 and len(unique_contacts) == 1:
+            # All media on this date belongs to one contact
+            contact_name = list(unique_contacts)[0]
+            
+            if len(candidates) > 1:
+                # Find closest timestamp to use as metadata source
+                file_mtime_utc = datetime.fromtimestamp(
+                    media_file.stat().st_mtime, 
+                    tz=timezone.utc
+                )
+                closest = min(
+                    candidates,
+                    key=lambda x: abs((x[1]["datetime"] - file_mtime_utc).total_seconds())
+                )
+                best_match = closest
+                diff = abs((closest[1]["datetime"] - file_mtime_utc).total_seconds())
+                match_reason = f"Tier 2: Single contact active ({contact_name}), offset {diff:.0f}s"
+            else:
+                best_match = candidates[0]
+                match_reason = f"Tier 2: Single contact active ({contact_name})"
+            
             match_tier = "tier2"
         
         # Tier 3: Timestamp proximity
         if not best_match and self.enable_tier3 and len(candidates) > 1:
-            file_mtime = datetime.fromtimestamp(media_file.stat().st_mtime)
+            # Convert file mtime to UTC for proper comparison with JSON timestamps
+            file_mtime_utc = datetime.fromtimestamp(
+                media_file.stat().st_mtime, 
+                tz=timezone.utc
+            )
             closest = min(
                 candidates,
-                key=lambda x: abs((x[1]["datetime"] - file_mtime).total_seconds())
+                key=lambda x: abs((x[1]["datetime"] - file_mtime_utc).total_seconds())
             )
-            time_diff = abs((closest[1]["datetime"] - file_mtime).total_seconds())
+            time_diff = abs((closest[1]["datetime"] - file_mtime_utc).total_seconds())
             
             if time_diff <= self.timestamp_threshold:
                 best_match = closest
@@ -393,7 +434,7 @@ class OrganizerCore:
             with open(report_path, "w", encoding="utf-8") as f:
                 f.write("MEDIA FILE MATCHING REPORT\n")
                 f.write("=" * 80 + "\n\n")
-                f.write(f"Configuration:\n")
+                f.write("Configuration:\n")
                 f.write(f"  Timestamp threshold: {self.timestamp_threshold}s\n")
                 f.write(f"  Tier 1 (Media ID): {'Enabled' if self.enable_tier1 else 'Disabled'}\n")
                 f.write(f"  Tier 2 (Single Contact): {'Enabled' if self.enable_tier2 else 'Disabled'}\n")
@@ -431,13 +472,15 @@ class OrganizerCore:
         """Convert Snapchat timestamp to datetime.
         
         Args:
-            ts_str: Timestamp string
+            ts_str: Timestamp string (expected to be in UTC)
             
         Returns:
-            datetime object or None
+            datetime object with UTC timezone or None
         """
         try:
-            return datetime.strptime(ts_str.replace(" UTC", ""), "%Y-%m-%d %H:%M:%S")
+            dt = datetime.strptime(ts_str.replace(" UTC", ""), "%Y-%m-%d %H:%M:%S")
+            # Mark as UTC for proper timezone comparison
+            return dt.replace(tzinfo=timezone.utc)
         except Exception:
             return None
     
@@ -449,13 +492,20 @@ class OrganizerCore:
             media_id_str: Media ID string
             
         Returns:
-            Hint string or None
+            Full hint string (not truncated) or None
         """
         if not media_id_str:
             return None
+            
+        # Check for b~ prefix format - return FULL string (not truncated)
         match = re.search(r"b~([A-Za-z0-9_-]+)", media_id_str)
         if match:
-            return match.group(1)[:20]
+            return match.group(1)  # Return full base64 string
+            
+        # If no b~ prefix, return the whole ID (might be in JSON without prefix)
+        if len(media_id_str) >= 20 and re.match(r"^[A-Za-z0-9_-]+$", media_id_str):
+            return media_id_str
+            
         return None
     
     @staticmethod

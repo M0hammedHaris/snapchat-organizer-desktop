@@ -524,7 +524,7 @@ class OrganizeTab(QWidget):
             total: Total progress value
             status: Status message
         """
-        self.progress_widget.set_progress(current, total)
+        self.progress_widget.update_progress(current, total)
         self.progress_widget.set_status(status)
     
     @Slot(dict)
@@ -541,14 +541,19 @@ class OrganizeTab(QWidget):
         tier2 = stats.get("tier2", 0)
         tier3 = stats.get("tier3", 0)
         
+        match_rate = (organized / total * 100) if total > 0 else 0
+        
         stats_text = (
-            f"Total files: {total}\\n"
-            f"Organized: {organized}\\n"
-            f"Unmatched: {unmatched}\\n\\n"
-            f"Matching breakdown:\\n"
-            f"  • Tier 1 (Media ID): {tier1}\\n"
-            f"  • Tier 2 (Single Contact): {tier2}\\n"
-            f"  • Tier 3 (Timestamp): {tier3}"
+            f"Total files: {total}\n"
+            f"Organized: {organized} ({match_rate:.1f}%)\n"
+            f"Unmatched: {unmatched}\n\n"
+            f"Matching breakdown:\n"
+            f"  • Tier 1 (Media ID): {tier1}\n"
+            f"  • Tier 2 (Single Contact): {tier2}\n"
+            f"  • Tier 3 (Timestamp): {tier3}\n\n"
+            f"⚠️  IMPORTANT: Results are not 100% accurate.\n"
+            f"Please review the organized folders and verify that\n"
+            f"media files are correctly matched to contacts."
         )
         
         self.stats_text.setPlainText(stats_text)
@@ -565,10 +570,21 @@ class OrganizeTab(QWidget):
         self._update_ui_state()
         
         if success:
+            # Add disclaimer to the message
+            enhanced_message = (
+                f"{message}\n\n"
+                f"⚠️  IMPORTANT DISCLAIMER:\n"
+                f"The matching algorithm is not 100% accurate. "
+                f"Please validate the organized folders to ensure media files "
+                f"are correctly matched to the right contacts.\n\n"
+                f"💡 Tip: Check the 'matching_report.txt' file in the output "
+                f"folder for detailed matching information."
+            )
+            
             QMessageBox.information(
                 self,
                 "Organization Complete",
-                message
+                enhanced_message
             )
             logger.info("Organization completed successfully")
             self.organize_completed.emit()
