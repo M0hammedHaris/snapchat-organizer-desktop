@@ -45,6 +45,49 @@ All processing is done **locally on your computer** - your data never leaves you
 
 ### Step-by-Step Installation
 
+#### For macOS Users (From GitHub Release)
+
+1. **Download** `Snapchat-Organizer-macOS.dmg` from the release page
+2. **Open** the DMG file (double-click)
+3. **Drag** "Snapchat Organizer" to Applications folder
+4. **Important: First Launch Security Step**
+   - **Right-click** the app in Applications folder
+   - Choose **"Open"** from the menu
+   - Click **"Open"** in the security dialog
+   - After this one-time step, you can open normally
+   
+   **Alternative:** Run this in Terminal:
+   ```bash
+   xattr -cr "/Applications/Snapchat Organizer.app"
+   ```
+
+#### For Windows Users (From GitHub Release)
+
+1. **Download** `Snapchat-Organizer-Windows.zip` from the release page
+2. **Extract** the ZIP file
+3. **Run** `Snapchat Organizer.exe`
+   - Windows Defender may show a warning
+   - Click "More info" → "Run anyway"
+
+#### For Linux Users (From GitHub Release)
+
+1. **Download** `Snapchat-Organizer-Linux.tar.gz`
+2. **Extract:**
+   ```bash
+   tar -xzf Snapchat-Organizer-Linux.tar.gz
+   cd Snapchat-Organizer-Linux
+   ```
+3. **Make executable:**
+   ```bash
+   chmod +x "Snapchat Organizer"
+   ```
+4. **Run:**
+   ```bash
+   ./Snapchat\ Organizer
+   ```
+
+#### For Developers (From Source)
+
 1. **Download the application**
    ```bash
    # If you received a ZIP file, extract it

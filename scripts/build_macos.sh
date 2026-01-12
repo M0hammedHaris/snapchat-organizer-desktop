@@ -29,6 +29,17 @@ if [ -d "dist/Snapchat Organizer.app" ]; then
     echo "📂 Location: dist/Snapchat Organizer.app"
     echo ""
     
+    # Ad-hoc code signing (prevents Gatekeeper warnings on your Mac)
+    echo "🔐 Signing app bundle..."
+    codesign --force --deep --sign - "dist/Snapchat Organizer.app" 2>/dev/null
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ App signed (ad-hoc)"
+    else
+        echo "⚠️  Signing skipped (codesign not available)"
+    fi
+    echo ""
+    
     # Get size
     SIZE=$(du -sh "dist/Snapchat Organizer.app" | cut -f1)
     echo "📊 Size: $SIZE"
