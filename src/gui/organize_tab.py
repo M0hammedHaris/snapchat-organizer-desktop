@@ -128,7 +128,7 @@ class OrganizeTab(QWidget):
             "font-weight: bold; "
             "padding-top: 15px; "
             "margin-top: 10px; "
-            "background-color: #e8f4f8; "
+            "background-color: palette(alternate-base); "
             "border-radius: 6px; "
             "}"
         )
@@ -147,9 +147,8 @@ class OrganizeTab(QWidget):
         instructions_text.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         instructions_text.setStyleSheet(
             "font-size: 11px; "
-            "color: #2c3e50; "
             "padding: 12px; "
-            "background-color: white; "
+            "background-color: palette(base); "
             "border-radius: 4px; "
             "font-weight: normal;"
         )
@@ -236,12 +235,11 @@ class OrganizeTab(QWidget):
         info_label.setWordWrap(True)
         info_label.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         info_label.setStyleSheet(
-            "color: #555; "
             "font-size: 11px; "
             "padding: 12px; "
-            "background-color: #f5f5f5; "
+            "background-color: palette(alternate-base); "
             "border-radius: 4px; "
-            "border: 1px solid #ddd;"
+            "border: 1px solid palette(mid);"
         )
         layout.addWidget(info_label)
         layout.addSpacing(8)
@@ -353,7 +351,7 @@ class OrganizeTab(QWidget):
             "padding: 10px; "
             "font-size: 12px; "
             "line-height: 1.4; "
-            "border: 1px solid #ddd; "
+            "border: 1px solid palette(mid); "
             "border-radius: 4px; "
             "}"
         )

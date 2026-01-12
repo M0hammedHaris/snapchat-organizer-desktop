@@ -62,20 +62,20 @@ class ToolButton(QPushButton):
             QPushButton {
                 text-align: left;
                 padding: 15px;
-                border: 2px solid #ddd;
+                border: 2px solid palette(mid);
                 border-radius: 8px;
-                background-color: white;
+                background-color: palette(base);
             }
             QPushButton:hover {
                 border-color: #0078d4;
-                background-color: #f0f8ff;
+                background-color: palette(alternate-base);
             }
             QPushButton:pressed {
-                background-color: #e0f0ff;
+                background-color: palette(dark);
             }
             QPushButton:disabled {
-                background-color: #f5f5f5;
-                color: #999;
+                background-color: palette(window);
+                color: palette(disabled-text);
             }
         """)
         
