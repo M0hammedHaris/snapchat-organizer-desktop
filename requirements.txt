@@ -50,6 +50,11 @@ flake8>=6.0.0                  # Linting
 mypy>=1.0.0                    # Type checking
 
 # ============================================================================
+# Build & Distribution
+# ============================================================================
+pyinstaller>=6.0.0             # Build standalone executables
+
+# ============================================================================
 # Optional (for build/packaging)
 # ============================================================================
 # PyInstaller>=6.0.0           # Standalone executable creation (uncomment when ready to package)
