@@ -68,6 +68,9 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon='resources/icons/icon.icns' if sys.platform == 'darwin' else 'resources/icons/icon.ico',
+    version='file_version_info.txt' if sys.platform == 'win32' else None,
+    uac_admin=False,  # Don't request admin privileges
+    uac_uiaccess=False,
 )
 
 coll = COLLECT(
