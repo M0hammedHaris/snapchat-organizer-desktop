@@ -25,8 +25,10 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QMessageBox,
     QTextEdit,
+    QScrollArea,
+    QFrame,
 )
-from PySide6.QtCore import Signal, Slot
+from PySide6.QtCore import Signal, Slot, Qt
 
 from .progress_widget import ProgressWidget
 from ..core.organize_worker import OrganizeWorker
@@ -64,37 +66,55 @@ class OrganizeTab(QWidget):
     
     def _setup_ui(self):
         """Set up the user interface."""
-        layout = QVBoxLayout(self)
-        layout.setSpacing(15)
-        layout.setContentsMargins(20, 20, 20, 20)
+        # Main layout for the tab
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+        
+        # Scroll area setup
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QFrame.NoFrame)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
+        # Container widget for scroll area
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setSpacing(20)
+        content_layout.setContentsMargins(30, 25, 30, 25)
         
         # Instructions header
         instructions = self._create_instructions_widget()
-        layout.addWidget(instructions)
+        content_layout.addWidget(instructions)
         
         # Folder selection group
         folder_group = self._create_folder_selection_group()
-        layout.addWidget(folder_group)
+        content_layout.addWidget(folder_group)
         
         # Matching configuration group
         config_group = self._create_configuration_group()
-        layout.addWidget(config_group)
+        content_layout.addWidget(config_group)
         
         # Action buttons
         button_layout = self._create_action_buttons()
-        layout.addLayout(button_layout)
+        # button_layout is a layout, so we add it to content_layout
+        content_layout.addLayout(button_layout)
         
         # Progress widget
         self.progress_widget = ProgressWidget()
         self.progress_widget.cancel_requested.connect(self._on_cancel_requested)
-        layout.addWidget(self.progress_widget)
+        content_layout.addWidget(self.progress_widget)
         
         # Matching statistics display
         stats_group = self._create_statistics_group()
-        layout.addWidget(stats_group)
+        content_layout.addWidget(stats_group)
         
         # Add stretch to push everything to top
-        layout.addStretch()
+        content_layout.addStretch()
+        
+        # Set scroll content
+        scroll_area.setWidget(content_widget)
+        main_layout.addWidget(scroll_area)
     
     def _create_instructions_widget(self) -> QGroupBox:
         """Create instructions widget with folder requirements.
@@ -106,13 +126,15 @@ class OrganizeTab(QWidget):
         group.setStyleSheet(
             "QGroupBox { "
             "font-weight: bold; "
-            "padding-top: 10px; "
+            "padding-top: 15px; "
+            "margin-top: 10px; "
             "background-color: #e8f4f8; "
             "border-radius: 6px; "
             "}"
         )
         layout = QVBoxLayout(group)
         layout.setSpacing(8)
+        layout.setContentsMargins(15, 20, 15, 15)
         
         instructions_text = QLabel(
             "<b>Required Folder Structure:</b><br>"
@@ -122,10 +144,11 @@ class OrganizeTab(QWidget):
             "<b>What this does:</b> Organizes media files into folders by contact name using intelligent matching."
         )
         instructions_text.setWordWrap(True)
+        instructions_text.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         instructions_text.setStyleSheet(
             "font-size: 11px; "
             "color: #2c3e50; "
-            "padding: 8px; "
+            "padding: 12px; "
             "background-color: white; "
             "border-radius: 4px; "
             "font-weight: normal;"
@@ -141,36 +164,49 @@ class OrganizeTab(QWidget):
             QGroupBox with folder selection controls
         """
         group = QGroupBox("📂 Folder Selection")
-        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 10px; }")
+        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 15px; margin-top: 10px; }")
         layout = QVBoxLayout(group)
-        layout.setSpacing(10)
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 20, 15, 15)
         
         # Export folder selector
         export_layout = QHBoxLayout()
-        export_layout.addWidget(QLabel("Snapchat Export:"))
+        export_layout.setSpacing(8)
+        export_label = QLabel("Snapchat Export:")
+        export_label.setMinimumWidth(120)
+        export_layout.addWidget(export_label)
         
         self.export_path_edit = QLineEdit()
         self.export_path_edit.setPlaceholderText("Select folder containing chat_media folders and chat_history.json...")
         self.export_path_edit.setReadOnly(True)
+        self.export_path_edit.setMinimumHeight(32)
         export_layout.addWidget(self.export_path_edit, stretch=1)
         
         self.browse_export_btn = QPushButton("Browse...")
         self.browse_export_btn.clicked.connect(self._browse_export_folder)
+        self.browse_export_btn.setMinimumWidth(100)
+        self.browse_export_btn.setMinimumHeight(32)
         export_layout.addWidget(self.browse_export_btn)
         
         layout.addLayout(export_layout)
         
         # Output folder selector
         output_layout = QHBoxLayout()
-        output_layout.addWidget(QLabel("Output Folder:"))
+        output_layout.setSpacing(8)
+        output_label = QLabel("Output Folder:")
+        output_label.setMinimumWidth(120)
+        output_layout.addWidget(output_label)
         
         self.output_path_edit = QLineEdit()
         self.output_path_edit.setPlaceholderText("Select output folder for organized media...")
         self.output_path_edit.setReadOnly(True)
+        self.output_path_edit.setMinimumHeight(32)
         output_layout.addWidget(self.output_path_edit, stretch=1)
         
         self.browse_output_btn = QPushButton("Browse...")
         self.browse_output_btn.clicked.connect(self._browse_output_folder)
+        self.browse_output_btn.setMinimumWidth(100)
+        self.browse_output_btn.setMinimumHeight(32)
         output_layout.addWidget(self.browse_output_btn)
         
         layout.addLayout(output_layout)
@@ -184,9 +220,10 @@ class OrganizeTab(QWidget):
             QGroupBox with configuration controls
         """
         group = QGroupBox("⚙️ Matching Settings")
-        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 10px; }")
+        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 15px; margin-top: 10px; }")
         layout = QVBoxLayout(group)
-        layout.setSpacing(10)
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 20, 15, 15)
         
         # Matching strategy info
         info_label = QLabel(
@@ -195,19 +232,25 @@ class OrganizeTab(QWidget):
             "  • Tier 2: Single contact on date\n"
             "  • Tier 3: Timestamp proximity matching"
         )
+        info_label.setWordWrap(True)
+        info_label.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         info_label.setStyleSheet(
             "color: #555; "
             "font-size: 11px; "
-            "padding: 8px; "
+            "padding: 12px; "
             "background-color: #f5f5f5; "
             "border-radius: 4px; "
             "border: 1px solid #ddd;"
         )
         layout.addWidget(info_label)
+        layout.addSpacing(8)
         
         # Timestamp threshold
         threshold_layout = QHBoxLayout()
-        threshold_layout.addWidget(QLabel("Timestamp threshold:"))
+        threshold_layout.setSpacing(8)
+        threshold_label = QLabel("Timestamp threshold:")
+        threshold_label.setMinimumWidth(140)
+        threshold_layout.addWidget(threshold_label)
         
         self.threshold_spinbox = QSpinBox()
         self.threshold_spinbox.setMinimum(30)
@@ -223,30 +266,39 @@ class OrganizeTab(QWidget):
         threshold_layout.addStretch()
         layout.addLayout(threshold_layout)
         
+        layout.addSpacing(5)
+        
         # Feature toggles
         self.enable_tier1_checkbox = QCheckBox("Enable Tier 1 (Media ID matching)")
         self.enable_tier1_checkbox.setChecked(True)
         self.enable_tier1_checkbox.setToolTip("Match files by Media ID - most accurate")
+        self.enable_tier1_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.enable_tier1_checkbox)
         
         self.enable_tier2_checkbox = QCheckBox("Enable Tier 2 (Single contact matching)")
         self.enable_tier2_checkbox.setChecked(True)
         self.enable_tier2_checkbox.setToolTip("Match files when only one contact sent media that day")
+        self.enable_tier2_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.enable_tier2_checkbox)
         
         self.enable_tier3_checkbox = QCheckBox("Enable Tier 3 (Timestamp proximity)")
         self.enable_tier3_checkbox.setChecked(True)
         self.enable_tier3_checkbox.setToolTip("Match files by timestamp proximity - use with caution")
+        self.enable_tier3_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.enable_tier3_checkbox)
+        
+        layout.addSpacing(8)
         
         self.organize_by_year_checkbox = QCheckBox("Organize by year")
         self.organize_by_year_checkbox.setChecked(True)
         self.organize_by_year_checkbox.setToolTip("Create year subdirectories (e.g., ContactName/2023/)")
+        self.organize_by_year_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.organize_by_year_checkbox)
         
         self.create_debug_report_checkbox = QCheckBox("Create detailed matching report")
         self.create_debug_report_checkbox.setChecked(True)
         self.create_debug_report_checkbox.setToolTip("Generate a detailed log of matching decisions")
+        self.create_debug_report_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.create_debug_report_checkbox)
         
         return group
@@ -258,14 +310,25 @@ class OrganizeTab(QWidget):
             QGroupBox with statistics display
         """
         group = QGroupBox("📊 Matching Statistics")
-        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 10px; }")
+        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 15px; margin-top: 10px; }")
         layout = QVBoxLayout(group)
-        layout.setSpacing(10)
+        layout.setSpacing(8)
+        layout.setContentsMargins(15, 20, 15, 15)
         
         self.stats_text = QTextEdit()
         self.stats_text.setReadOnly(True)
-        self.stats_text.setMaximumHeight(150)
+        self.stats_text.setMinimumHeight(120)
+        self.stats_text.setMaximumHeight(180)
         self.stats_text.setPlaceholderText("Statistics will appear here after organization completes...")
+        self.stats_text.setStyleSheet(
+            "QTextEdit { "
+            "padding: 10px; "
+            "font-size: 12px; "
+            "line-height: 1.4; "
+            "border: 1px solid #ddd; "
+            "border-radius: 4px; "
+            "}"
+        )
         layout.addWidget(self.stats_text)
         
         return group
@@ -280,7 +343,8 @@ class OrganizeTab(QWidget):
         
         self.start_btn = QPushButton("🚀 Start Organization")
         self.start_btn.clicked.connect(self._on_start_clicked)
-        self.start_btn.setMinimumHeight(40)
+        self.start_btn.setMinimumHeight(45)
+        self.start_btn.setStyleSheet("QPushButton { font-size: 13px; padding: 8px; }")
         layout.addWidget(self.start_btn)
         
         self.open_output_btn = QPushButton("📁 Open Output Folder")
@@ -309,8 +373,8 @@ class OrganizeTab(QWidget):
                 QMessageBox.warning(
                     self,
                     "Invalid Export Folder",
-                    f"Selected folder doesn't contain chat_history/json/chat_history.json\n\n"
-                    f"Please select the root folder of your Snapchat export."
+                    "Selected folder doesn't contain chat_history/json/chat_history.json\n\n"
+                    "Please select the root folder of your Snapchat export."
                 )
                 return
             
@@ -320,8 +384,8 @@ class OrganizeTab(QWidget):
                 QMessageBox.warning(
                     self,
                     "No Media Folders Found",
-                    f"Selected folder doesn't contain any chat_media folders.\n\n"
-                    f"Make sure you're selecting the correct Snapchat export folder."
+                    "Selected folder doesn't contain any chat_media folders.\n\n"
+                    "Make sure you're selecting the correct Snapchat export folder."
                 )
                 return
             

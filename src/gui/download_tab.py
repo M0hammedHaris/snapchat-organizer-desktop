@@ -69,8 +69,8 @@ class DownloadTab(QWidget):
     def _setup_ui(self):
         """Set up the user interface."""
         layout = QVBoxLayout(self)
-        layout.setSpacing(15)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(20)
+        layout.setContentsMargins(30, 25, 30, 25)
         
         # File selection group
         file_group = self._create_file_selection_group()
@@ -99,9 +99,10 @@ class DownloadTab(QWidget):
             QGroupBox with file selection controls
         """
         group = QGroupBox("📄 File Selection")
-        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 10px; }")
+        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 15px; margin-top: 10px; }")
         layout = QVBoxLayout(group)
-        layout.setSpacing(10)
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 20, 15, 15)
         
         # HTML file selector
         html_layout = QHBoxLayout()
@@ -142,9 +143,10 @@ class DownloadTab(QWidget):
             QGroupBox with configuration controls
         """
         group = QGroupBox("⚙️ Download Settings")
-        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 10px; }")
+        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 15px; margin-top: 10px; }")
         layout = QVBoxLayout(group)
-        layout.setSpacing(10)
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 20, 15, 15)
         
         # Delay configuration
         delay_layout = QHBoxLayout()
@@ -164,12 +166,15 @@ class DownloadTab(QWidget):
         delay_layout.addStretch()
         layout.addLayout(delay_layout)
         
+        layout.addSpacing(5)
+        
         # Feature toggles
         self.embed_gps_checkbox = QCheckBox("Embed GPS metadata")
         self.embed_gps_checkbox.setChecked(True)
         self.embed_gps_checkbox.setToolTip(
             "Embed GPS coordinates from Snapchat data into file metadata (requires ExifTool)"
         )
+        self.embed_gps_checkbox.setStyleSheet("QCheckBox { padding: 4px; }")
         layout.addWidget(self.embed_gps_checkbox)
         
         self.apply_overlays_checkbox = QCheckBox("Apply overlays")
@@ -177,6 +182,7 @@ class DownloadTab(QWidget):
         self.apply_overlays_checkbox.setToolTip(
             "Composite Snapchat overlays onto images and videos (requires Pillow and FFmpeg)"
         )
+        self.apply_overlays_checkbox.setStyleSheet("QCheckBox { padding: 4px; }")
         layout.addWidget(self.apply_overlays_checkbox)
         
         self.convert_timezone_checkbox = QCheckBox("Convert timezone")
@@ -184,6 +190,7 @@ class DownloadTab(QWidget):
         self.convert_timezone_checkbox.setToolTip(
             "Convert timestamps from UTC to GPS-based local timezone"
         )
+        self.convert_timezone_checkbox.setStyleSheet("QCheckBox { padding: 4px; }")
         layout.addWidget(self.convert_timezone_checkbox)
         
         self.organize_by_year_checkbox = QCheckBox("Organize by year")
@@ -191,6 +198,7 @@ class DownloadTab(QWidget):
         self.organize_by_year_checkbox.setToolTip(
             "Organize files into year-based subdirectories (e.g., 2023/, 2024/)"
         )
+        self.organize_by_year_checkbox.setStyleSheet("QCheckBox { padding: 4px; }")
         layout.addWidget(self.organize_by_year_checkbox)
         
         return group
