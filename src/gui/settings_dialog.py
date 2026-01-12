@@ -38,6 +38,8 @@ from src.utils.config import (
     DEFAULT_TIMESTAMP_THRESHOLD,
     MIN_TIMESTAMP_THRESHOLD,
     MAX_TIMESTAMP_THRESHOLD,
+    load_settings,
+    save_settings,
 )
 
 logger = logging.getLogger(__name__)
@@ -361,25 +363,26 @@ class SettingsDialog(QDialog):
 
     def _load_settings(self):
         """Load current settings from configuration."""
-        # TODO: Load from actual config file when implemented
-        # For now, use defaults
+        # Load from config file
+        config = load_settings()
+        
         self._original_settings = {
-            'default_download_dir': str(Path.home() / "Downloads"),
-            'default_export_dir': str(Path.home() / "Downloads"),
-            'remember_last_paths': True,
-            'auto_open_output': False,
-            'confirm_operations': True,
-            'download_delay': DEFAULT_DOWNLOAD_DELAY,
-            'max_retries': 3,
-            'timeout': 30,
-            'default_gps': True,
-            'default_overlay': True,
-            'default_timezone': True,
-            'time_window': 7200,
-            'min_score': 45,
-            'copy_files': False,
-            'preserve_structure': False,
-            'create_report': True,
+            'default_download_dir': config['general']['default_download_path'],
+            'default_export_dir': config['general']['default_export_path'],
+            'remember_last_paths': config['general']['remember_last_paths'],
+            'auto_open_output': config['general']['auto_open_output'],
+            'confirm_operations': config['general']['confirm_operations'],
+            'download_delay': config['download']['delay_seconds'],
+            'max_retries': config['download']['max_retries'],
+            'timeout': config['download']['timeout_seconds'],
+            'default_gps': config['download']['default_apply_gps'],
+            'default_overlay': config['download']['default_apply_overlay'],
+            'default_timezone': config['download']['default_convert_timezone'],
+            'time_window': config['organize']['time_window_seconds'],
+            'min_score': config['organize']['minimum_score'],
+            'copy_files': config['organize']['copy_files'],
+            'preserve_structure': config['organize']['preserve_structure'],
+            'create_report': config['organize']['create_report'],
         }
         
         # Apply to UI
@@ -400,7 +403,7 @@ class SettingsDialog(QDialog):
         self.preserve_structure_check.setChecked(self._original_settings['preserve_structure'])
         self.create_report_check.setChecked(self._original_settings['create_report'])
         
-        logger.info("Settings loaded")
+        logger.info("Settings loaded from config file")
 
     def _save_settings(self):
         """Save current settings and emit changes."""
@@ -423,20 +426,47 @@ class SettingsDialog(QDialog):
             'create_report': self.create_report_check.isChecked(),
         }
         
-        # TODO: Save to actual config file
-        logger.info("Settings saved")
+        # Convert to config format
+        config = load_settings()  # Get current config with all sections
+        config['general']['default_download_path'] = self._current_settings['default_download_dir']
+        config['general']['default_export_path'] = self._current_settings['default_export_dir']
+        config['general']['remember_last_paths'] = self._current_settings['remember_last_paths']
+        config['general']['auto_open_output'] = self._current_settings['auto_open_output']
+        config['general']['confirm_operations'] = self._current_settings['confirm_operations']
+        config['download']['delay_seconds'] = self._current_settings['download_delay']
+        config['download']['max_retries'] = self._current_settings['max_retries']
+        config['download']['timeout_seconds'] = self._current_settings['timeout']
+        config['download']['default_apply_gps'] = self._current_settings['default_gps']
+        config['download']['default_apply_overlay'] = self._current_settings['default_overlay']
+        config['download']['default_convert_timezone'] = self._current_settings['default_timezone']
+        config['organize']['time_window_seconds'] = self._current_settings['time_window']
+        config['organize']['minimum_score'] = self._current_settings['min_score']
+        config['organize']['copy_files'] = self._current_settings['copy_files']
+        config['organize']['preserve_structure'] = self._current_settings['preserve_structure']
+        config['organize']['create_report'] = self._current_settings['create_report']
         
-        # Emit changed settings
-        self.settings_changed.emit(self._current_settings)
-        
-        # Show confirmation
-        QMessageBox.information(
-            self,
-            "Settings Saved",
-            "Your settings have been saved successfully."
-        )
-        
-        self.accept()
+        # Save to config file
+        if save_settings(config):
+            logger.info("Settings saved to config file")
+            
+            # Emit changed settings
+            self.settings_changed.emit(self._current_settings)
+            
+            # Show confirmation
+            QMessageBox.information(
+                self,
+                "Settings Saved",
+                "Your settings have been saved successfully."
+            )
+            
+            self.accept()
+        else:
+            logger.error("Failed to save settings")
+            QMessageBox.warning(
+                self,
+                "Save Failed",
+                "Failed to save settings. Please try again."
+            )
 
     def _restore_defaults(self):
         """Restore all settings to default values."""

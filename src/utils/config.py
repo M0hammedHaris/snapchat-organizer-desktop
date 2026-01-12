@@ -235,3 +235,86 @@ def set_show_help_on_startup(show: bool) -> None:
             json.dump(config, f, indent=2)
     except Exception:
         pass
+
+
+def load_settings() -> Dict[str, Any]:
+    """Load user settings from config file.
+    
+    Returns:
+        Dictionary of user settings with defaults applied
+    """
+    import json
+    
+    # Default settings
+    defaults = {
+        'show_help_on_startup': False,
+        'general': {
+            'default_download_path': str(Path.home() / "Downloads"),
+            'default_export_path': str(Path.home() / "Documents" / "Snapchat"),
+            'remember_last_paths': True,
+            'auto_open_output': False,
+            'confirm_operations': True,
+        },
+        'download': {
+            'max_retries': MAX_RETRIES,
+            'timeout_seconds': DEFAULT_TIMEOUT,
+            'delay_seconds': DEFAULT_DOWNLOAD_DELAY,
+            'default_apply_gps': True,
+            'default_apply_overlay': True,
+            'default_convert_timezone': True,
+        },
+        'organize': {
+            'time_window_seconds': DEFAULT_TIMESTAMP_THRESHOLD,
+            'minimum_score': 50,
+            'copy_files': False,
+            'preserve_structure': False,
+            'create_report': True,
+        },
+        'last_paths': {
+            'download_html': '',
+            'download_output': '',
+            'organize_export': '',
+            'organize_output': '',
+            'tools_folder': '',
+        }
+    }
+    
+    # Load existing config
+    try:
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE, 'r') as f:
+                saved_config = json.load(f)
+                # Merge with defaults (saved values override defaults)
+                for section, values in saved_config.items():
+                    if section in defaults and isinstance(values, dict):
+                        defaults[section].update(values)
+                    else:
+                        defaults[section] = values
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Failed to load config file: {e}")
+    
+    return defaults
+
+
+def save_settings(settings: Dict[str, Any]) -> bool:
+    """Save user settings to config file.
+    
+    Args:
+        settings: Dictionary of settings to save
+        
+    Returns:
+        True if saved successfully, False otherwise
+    """
+    import json
+    
+    try:
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(settings, f, indent=2)
+        return True
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to save config file: {e}")
+        return False
