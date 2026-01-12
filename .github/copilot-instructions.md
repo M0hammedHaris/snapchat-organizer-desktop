@@ -929,5 +929,31 @@ For questions or clarifications, refer to the project README or ask for specific
 
 ---
 
+## Workspace & Related Repositories
+
+This VS Code workspace contains multiple related projects and helper scripts. When working across the workspace, consult these files and repos first:
+
+- **snapchat-memory-downloader**: complementary project that downloads and preprocesses Snapchat memories. See [snapchat-memory-downloader/CLAUDE.md](../snapchat-memory-downloader/CLAUDE.md) for architecture, CLI flags, and examples (e.g., `python download_snapchat_memories.py --apply-overlays`).
+- Top-level helper scripts (legacy shell versions and Python replacements):
+    - `apply_date.sh` / Python equivalent: fixes timestamps (see `INTEGRATION_SUMMARY.md`).
+    - `file_organiser.sh` / Python equivalent: organizes files by year.
+    - `organize_chat_media.py`, `remove_duplicates.py`: workspace utilities for organizing and de-duplicating exports.
+- How to run the desktop app (from this repo):
+    ```bash
+    # from workspace root
+    cd snapchat-organizer-desktop && python src/main.py
+    ```
+- Tests and development for the desktop app:
+    ```bash
+    cd snapchat-organizer-desktop
+    python -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
+    pytest
+    ```
+
+When making cross-repo changes, update the corresponding `PROGRESS.md` and relevant `INTEGRATION_SUMMARY.md` entries so future agents can follow the history.
+
+
 **Last Updated**: January 11, 2026
 **Version**: 1.0.0
