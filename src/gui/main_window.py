@@ -24,8 +24,14 @@ from ..utils.config import (
     WINDOW_MIN_HEIGHT,
     WINDOW_DEFAULT_WIDTH,
     WINDOW_DEFAULT_HEIGHT,
+    is_first_run,
+    mark_first_run_complete,
+    should_show_help_on_startup,
+    set_show_help_on_startup,
 )
 from ..utils.logger import get_logger
+from .settings_dialog import SettingsDialog
+from .help_dialog import HelpDialog
 
 logger = get_logger(__name__)
 
@@ -47,6 +53,10 @@ class MainWindow(QMainWindow):
         self._create_menu_bar()
         
         logger.debug("Main window initialized")
+        
+        # Show help dialog on first run (using QTimer to ensure window is shown first)
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(500, self._check_first_run)
     
     def _setup_ui(self):
         """Set up the user interface."""
@@ -162,9 +172,14 @@ class MainWindow(QMainWindow):
         # Help menu
         help_menu = menubar.addMenu("&Help")
         
+        # How to Download Data action
+        download_help_action = QAction("How to &Download Snapchat Data", self)
+        download_help_action.setShortcut("F1")
+        download_help_action.triggered.connect(self._show_download_help)
+        help_menu.addAction(download_help_action)
+        
         # Documentation action
-        docs_action = QAction("&Documentation", self)
-        docs_action.setShortcut("F1")
+        docs_action = QAction("&Online Documentation", self)
         docs_action.triggered.connect(self._show_documentation)
         help_menu.addAction(docs_action)
         
@@ -179,12 +194,45 @@ class MainWindow(QMainWindow):
     
     def _show_settings(self):
         """Show settings dialog."""
-        logger.info("Settings dialog requested")
-        QMessageBox.information(
-            self,
-            "Settings",
-            "Settings dialog coming soon!",
-        )
+        logger.info("Opening settings dialog")
+        dialog = SettingsDialog(self)
+        dialog.settings_changed.connect(self._on_settings_changed)
+        dialog.exec()
+    
+    def _show_download_help(self):
+        """Show help dialog for downloading Snapchat data."""
+        logger.info("Opening download help dialog")
+        dialog = HelpDialog(self, show_dont_show_again=False)
+        dialog.exec()
+    
+    def _check_first_run(self):
+        """Check if this is the first run and show help dialog if needed."""
+        if should_show_help_on_startup():
+            logger.info("First run detected, showing help dialog")
+            dialog = HelpDialog(self, show_dont_show_again=True)
+            result = dialog.exec()
+            
+            # If user checked "don't show again", save the preference
+            if hasattr(dialog, 'dont_show_again') and dialog.dont_show_again:
+                logger.info("User opted not to show help on startup")
+                set_show_help_on_startup(False)
+            
+            # Mark first run as complete
+            if is_first_run():
+                mark_first_run_complete()
+                logger.info("First run marked as complete")
+    
+    def _on_settings_changed(self, settings: dict):
+        """Handle settings changes.
+        
+        Args:
+            settings: Dictionary of updated settings
+        """
+        logger.info("Settings changed, applying new configuration")
+        # TODO: Apply settings to application components
+        # For now, just log the changes
+        for key, value in settings.items():
+            logger.debug(f"Setting changed: {key} = {value}")
     
     def _show_documentation(self):
         """Show documentation."""
@@ -193,8 +241,10 @@ class MainWindow(QMainWindow):
             self,
             "Documentation",
             f"{APP_NAME} Documentation\n\n"
-            "Documentation will be available at:\n"
-            "https://github.com/M0hammedHaris/snapchat-organizer-desktop",
+            "Complete documentation is available at:\n"
+            "https://github.com/M0hammedHaris/snapchat-organizer-desktop\n\n"
+            "For help downloading Snapchat data, use:\n"
+            "Help → How to Download Snapchat Data (F1)",
         )
     
     def _show_about(self):

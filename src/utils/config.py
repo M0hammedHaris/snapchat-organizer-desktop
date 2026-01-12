@@ -18,6 +18,8 @@ APP_DIR = Path.home() / ".snapchat-organizer"
 DB_PATH = APP_DIR / "organizer.db"
 LOG_PATH = APP_DIR / "logs"
 CACHE_PATH = APP_DIR / "cache"
+CONFIG_FILE = APP_DIR / "config.json"
+FIRST_RUN_MARKER = APP_DIR / ".first_run_complete"
 
 # Ensure directories exist
 APP_DIR.mkdir(parents=True, exist_ok=True)
@@ -170,3 +172,66 @@ def can_access_feature(tier: str, feature: str) -> bool:
         return value is not None
     except KeyError:
         return False
+
+
+def is_first_run() -> bool:
+    """Check if this is the first time running the application.
+    
+    Returns:
+        True if first run, False otherwise
+    """
+    return not FIRST_RUN_MARKER.exists()
+
+
+def mark_first_run_complete() -> None:
+    """Mark the first run as complete."""
+    FIRST_RUN_MARKER.touch()
+    
+
+def should_show_help_on_startup() -> bool:
+    """Check if help dialog should be shown on startup.
+    
+    Reads from config file. Returns True on first run.
+    
+    Returns:
+        True if help should be shown, False otherwise
+    """
+    import json
+    
+    if is_first_run():
+        return True
+        
+    try:
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE, 'r') as f:
+                config = json.load(f)
+                return config.get('show_help_on_startup', False)
+    except Exception:
+        pass
+        
+    return False
+
+
+def set_show_help_on_startup(show: bool) -> None:
+    """Set whether to show help dialog on startup.
+    
+    Args:
+        show: True to show help on startup, False otherwise
+    """
+    import json
+    
+    config = {}
+    try:
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE, 'r') as f:
+                config = json.load(f)
+    except Exception:
+        pass
+        
+    config['show_help_on_startup'] = show
+    
+    try:
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(config, f, indent=2)
+    except Exception:
+        pass
