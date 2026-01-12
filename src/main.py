@@ -16,6 +16,7 @@ from PySide6.QtCore import Qt
 from src.gui.main_window import MainWindow
 from src.gui.download_tab import DownloadTab
 from src.gui.organize_tab import OrganizeTab
+from src.gui.tools_tab import ToolsTab
 from src.utils.config import APP_NAME, APP_VERSION
 from src.utils.logger import get_logger
 
@@ -47,6 +48,11 @@ def main():
     organize_tab = OrganizeTab()
     window.remove_tab(1)  # Remove placeholder
     window.add_tab(organize_tab, "📁 Organize Chat Media", index=1)
+    
+    # Tools Tab
+    tools_tab = ToolsTab()
+    window.remove_tab(2)  # Remove placeholder
+    window.add_tab(tools_tab, "🔧 Tools", index=2)
     
     # Set Download tab as default
     window.set_current_tab(0)
