@@ -55,7 +55,6 @@ dmypy.json
 
 # PyInstaller
 *.manifest
-*.spec
 
 # Database
 *.db
