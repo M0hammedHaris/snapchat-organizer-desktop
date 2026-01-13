@@ -3,15 +3,17 @@
 **Project:** Snapchat Organizer Desktop MVP  
 **Repository:** M0hammedHaris/snapchat-organizer-desktop  
 **Started:** January 11, 2026  
-**Current Phase:** Alpha Release - Public Testing  
-**Status:** 🚀 RELEASED v1.0.0-alpha
+**Current Phase:** Alpha Release - Public Testing (v1.0.2-alpha)  
+**Status:** 🚀 RELEASED v1.0.2-alpha - UI/Theme Improvements
 
 ---
 
-## 🎯 Overall Progress: 100% Phase 1 Complete + Alpha Release! 🎉
+## 🎯 Overall Progress: 100% Phase 1 Complete + Alpha Release v1.0.2! 🎉
 
 ### Phase 1: Foundation & MVP (Week 1-2) - 100% Complete ✅
 ### 🚀 Alpha Release - January 12, 2026 ✅
+### 🚀 v1.0.1-alpha - January 13, 2026 ✅ WINDOWS FIX RELEASED
+### 🚀 v1.0.2-alpha - January 13, 2026 ✅ UI/THEME IMPROVEMENTS RELEASED
 
 #### ✅ COMPLETED
 
@@ -141,6 +143,36 @@
 - [x] Documented code signing plan for Phase 3 ($300-500/year)
 - **Commits:** 0a72cc0 (feat: add metadata and SmartScreen bypass documentation)
 
+**v1.0.1-alpha Release** (100%) ✅ RELEASED - January 13, 2026
+- [x] Created v1.0.1-alpha git tag
+- [x] Pushed tag to GitHub (triggers build workflow)
+- [x] GitHub Actions builds native installers for macOS, Windows, Linux
+- [x] Release available at: https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.1-alpha
+- [x] Download links: DMG (macOS), ZIP (Windows), TAR.GZ (Linux)
+- [x] Ready for distribution to alpha testers
+
+**v1.0.2-alpha Release** (100%) ✅ RELEASED - January 13, 2026
+- [x] Dynamic light/dark theme support with ThemeManager class
+- [x] Created comprehensive light.qss stylesheet (500+ lines)
+- [x] Created comprehensive dark.qss stylesheet (500+ lines)
+- [x] Integrated darkdetect for system theme detection
+- [x] Real-time theme monitoring with 1-second check interval
+- [x] Added 10+ new icon assets (app and tab icons)
+- [x] Refactored UI components to use QSS classes instead of inline styles
+- [x] Enhanced layout spacing for better visual hierarchy
+- [x] Improved checkbox and input visibility in both themes
+- [x] Created GitHub PR #8 for release documentation
+- [x] Created v1.0.2-alpha git tag
+- [x] Pushed tag to GitHub for automated build workflow
+- **Features:**
+  - Auto-detect light/dark mode based on system settings
+  - Smooth theme transitions with QTimer monitoring
+  - Professional styling with 500+ line QSS files
+  - Centralized styling for easier maintenance
+  - Tab icons for visual organization
+  - Window icon support
+- **Release:** https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.2-alpha
+
 ---
 
 ## 📊 Metrics
@@ -205,7 +237,28 @@
 4. **Settings dialog** - ✅ Complete framework with config persistence
 5. **Help system** - ✅ Comprehensive guide with first-run experience
 6. **First-run onboarding** - ✅ Tested and working (5/5 tests passing)
-5. **Help system** - ✅ Comprehensive user documentation integrated
+7. **Help system** - ✅ Comprehensive user documentation integrated
+8. **UI/UX Polishing** - ✅ Implemented Dark Theme & Icon
+    - [x] Created modern dark theme stylesheet (resources/styles/dark.qss)
+    - [x] Updated main.py to load theme on startup
+    - [x] Configured application window icon
+9. **Windows Launch Issue** - ✅ FIXED (January 13, 2026)
+    - [x] Fixed ModuleNotFoundError for darkdetect dependency
+    - [x] Made darkdetect truly optional with try-except block
+- [x] Added darkdetect to requirements.txt
+    - [x] Application now launches successfully on all platforms
+    - **Issue:** App failed to launch due to unconditional darkdetect import
+    - **Fix:** Wrapped import in try-except, added DARKDETECT_AVAILABLE flag
+    - **Files Modified:** src/utils/theme.py, requirements.txt
+10. **Dynamic Theming** - ✅ Implemented Light/Dark Mode Support
+    - [x] Created light theme stylesheet (resources/styles/light.qss)
+    - [x] Implemented theme auto-detection (src/utils/theme.py)
+    - [x] Integrated dynamic switching on startup
+    - [x] implemented real-time theme monitoring (no restart required)
+    - [x] Refactored inline styles to maintainable QSS files
+11. **QCheckBox Visibility Fix** - ✅ FIXED (January 13, 2026)
+    - [x] Fixed invisible checkmark in dark/light themes by using base64 encoded SVG
+    - [x] Removed inline styles from all checkboxes to ensure consistent global theming
 
 ---
 
@@ -301,14 +354,18 @@
 - **Coverage:** Currently ~60% of core logic covered
 
 ### Alpha Release Build ✅
-- **Version:** v1.0.0-alpha
-- **Released:** January 12, 2026
-- **Tag:** v1.0.0-alpha
-- **Commit:** 8dc43b2
+- **v1.0.0-alpha** - January 12, 2026
+- **v1.0.1-alpha** - January 13, 2026 (Windows SmartScreen Fix)
+- **v1.0.2-alpha** - January 13, 2026 ⭐ CURRENT RELEASE (UI/Theme Improvements)
+- **Released:** January 13, 2026
+- **Tag:** v1.0.2-alpha
+- **Commit:** 0c9e52b (docs: update to v1.0.2-alpha with UI/theme improvements)
 - **Platforms:** macOS, Windows, Linux (via GitHub Actions)
-- **Icon:** Custom Snapchat-themed icon with ghost + folder
+- **Icons:** 10+ icons (app icons in multiple sizes + tab-specific icons)
+- **Stylesheets:** light.qss and dark.qss (500+ lines each)
 - **Build Tool:** PyInstaller 6.0+ with custom .spec configuration
 - **Distribution:** GitHub Releases (automatic via workflow)
+- **Download:** https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.2-alpha
 - **Documentation:** [BUILD_SUMMARY.md](docs/releases/alpha/BUILD_SUMMARY.md)
 
 ### Reference Documentation
@@ -320,11 +377,13 @@
 
 ---
 
-**Last Updated:** January 12, 2026 - 22:45 UTC  
+**Last Updated:** January 13, 2026 - 03:30 UTC  
 **Updated By:** GitHub Copilot  
-**Session Duration:** ~10 hours total (Phase 1 complete + Alpha build & release)
-**Current Status:** 🚀 ALPHA RELEASED - v1.0.0-alpha available on GitHub  
-**Next Critical Milestone:** Alpha testing with 5-10 users (1-2 weeks)  
+**Session Duration:** ~1 hour (v1.0.2-alpha release with UI/theme improvements)
+**Current Status:** 🚀 v1.0.2-alpha RELEASED - Dynamic light/dark theme support + improved UI consistency  
+**Next Critical Milestone:** Distribute to alpha testers, collect feedback (1-2 weeks)  
 **Phase 1 Completion Date:** January 12, 2026  
-**Alpha Release:** GitHub Releases v1.0.0-alpha ✅
-**Download:** https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.0-alpha
+**v1.0.0-alpha Release:** January 12, 2026  
+**v1.0.1-alpha Release:** January 13, 2026  
+**v1.0.2-alpha Release:** January 13, 2026 ⭐  
+**Download:** https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.2-alpha

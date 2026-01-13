@@ -38,6 +38,7 @@ pytz>=2023.3                   # Timezone database (Python < 3.9 only, but inclu
 # ============================================================================
 # Platform-specific Dependencies
 # ============================================================================
+darkdetect>=0.8.0             # Optional: System dark mode detection (macOS/Windows/Linux)
 pywin32>=305; sys_platform == 'win32'  # Windows file timestamp handling
 
 # ============================================================================

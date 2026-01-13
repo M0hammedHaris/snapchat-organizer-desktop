@@ -292,19 +292,16 @@ class OrganizeTab(QWidget):
         self.enable_tier1_checkbox = QCheckBox("Enable Media ID matching")
         self.enable_tier1_checkbox.setChecked(True)
         self.enable_tier1_checkbox.setToolTip("Match files by normalized Media ID (exact & fuzzy)")
-        self.enable_tier1_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.enable_tier1_checkbox)
         
         self.enable_tier2_checkbox = QCheckBox("Enable single contact matching")
         self.enable_tier2_checkbox.setChecked(True)
         self.enable_tier2_checkbox.setToolTip("Match files when only one contact sent media that day")
-        self.enable_tier2_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.enable_tier2_checkbox)
         
         self.enable_tier3_checkbox = QCheckBox("Enable timestamp proximity")
         self.enable_tier3_checkbox.setChecked(True)
         self.enable_tier3_checkbox.setToolTip("Match files by timestamp proximity with Gaussian decay")
-        self.enable_tier3_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.enable_tier3_checkbox)
         
         layout.addSpacing(8)
@@ -312,19 +309,16 @@ class OrganizeTab(QWidget):
         self.organize_by_year_checkbox = QCheckBox("Organize by year")
         self.organize_by_year_checkbox.setChecked(True)
         self.organize_by_year_checkbox.setToolTip("Create year subdirectories (e.g., ContactName/2023/)")
-        self.organize_by_year_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.organize_by_year_checkbox)
         
         self.create_debug_report_checkbox = QCheckBox("Create detailed matching report")
         self.create_debug_report_checkbox.setChecked(True)
         self.create_debug_report_checkbox.setToolTip("Generate a detailed log of matching decisions with scores")
-        self.create_debug_report_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.create_debug_report_checkbox)
         
         self.preserve_originals_checkbox = QCheckBox("Preserve original filenames (.snapchat_original sidecar)")
         self.preserve_originals_checkbox.setChecked(True)
         self.preserve_originals_checkbox.setToolTip("Create sidecar files with original metadata")
-        self.preserve_originals_checkbox.setStyleSheet("QCheckBox { padding: 4px; font-size: 12px; }")
         layout.addWidget(self.preserve_originals_checkbox)
         
         return group
