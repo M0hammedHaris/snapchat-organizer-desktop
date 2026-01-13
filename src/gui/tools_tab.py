@@ -58,26 +58,10 @@ class ToolButton(QPushButton):
         super().__init__(parent)
         
         self.setMinimumHeight(100)
-        self.setStyleSheet("""
-            QPushButton {
-                text-align: left;
-                padding: 15px;
-                border: 2px solid palette(mid);
-                border-radius: 8px;
-                background-color: palette(base);
-            }
-            QPushButton:hover {
-                border-color: #0078d4;
-                background-color: palette(alternate-base);
-            }
-            QPushButton:pressed {
-                background-color: palette(dark);
-            }
-            QPushButton:disabled {
-                background-color: palette(window);
-                color: palette(disabled-text);
-            }
-        """)
+        self.setMinimumHeight(100)
+        
+        # Use QSS class for styling
+        self.setProperty("class", "ToolButton")
         
         # Create button text with icon, title, and description
         button_text = f"{icon}  {title}\n{description}"

@@ -213,7 +213,7 @@
 9. **Windows Launch Issue** - ✅ FIXED (January 13, 2026)
     - [x] Fixed ModuleNotFoundError for darkdetect dependency
     - [x] Made darkdetect truly optional with try-except block
-    - [x] Added darkdetect to requirements.txt
+- [x] Added darkdetect to requirements.txt
     - [x] Application now launches successfully on all platforms
     - **Issue:** App failed to launch due to unconditional darkdetect import
     - **Fix:** Wrapped import in try-except, added DARKDETECT_AVAILABLE flag
@@ -222,6 +222,8 @@
     - [x] Created light theme stylesheet (resources/styles/light.qss)
     - [x] Implemented theme auto-detection (src/utils/theme.py)
     - [x] Integrated dynamic switching on startup
+    - [x] implemented real-time theme monitoring (no restart required)
+    - [x] Refactored inline styles to maintainable QSS files
 
 ---
 

@@ -65,6 +65,12 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(QSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT))
         self.resize(QSize(WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT))
         
+        # Set window icon
+        from pathlib import Path
+        icon_path = Path(__file__).parent.parent.parent / "resources" / "icon.png"
+        if icon_path.exists():
+            self.setWindowIcon(QIcon(str(icon_path)))
+        
         # Central widget with layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)

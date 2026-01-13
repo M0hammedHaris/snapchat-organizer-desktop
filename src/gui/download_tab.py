@@ -99,7 +99,7 @@ class DownloadTab(QWidget):
             QGroupBox with file selection controls
         """
         group = QGroupBox("📄 File Selection")
-        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 15px; margin-top: 10px; }")
+        group.setProperty("class", "StyledGroupBox")
         layout = QVBoxLayout(group)
         layout.setSpacing(12)
         layout.setContentsMargins(15, 20, 15, 15)
@@ -143,7 +143,7 @@ class DownloadTab(QWidget):
             QGroupBox with configuration controls
         """
         group = QGroupBox("⚙️ Download Settings")
-        group.setStyleSheet("QGroupBox { font-weight: bold; padding-top: 15px; margin-top: 10px; }")
+        group.setProperty("class", "StyledGroupBox")
         layout = QVBoxLayout(group)
         layout.setSpacing(12)
         layout.setContentsMargins(15, 20, 15, 15)
