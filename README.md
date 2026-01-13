@@ -11,12 +11,12 @@
 ## 🎯 Project Overview
 
 **Status:** ✅ MVP Complete - Alpha Ready for Testing  
-**Version:** 1.0.0-alpha (Signed Build)  
+**Version:** 1.0.1-alpha (Windows SmartScreen Fix)  
 **Repository:** https://github.com/M0hammedHaris/snapchat-organizer-desktop  
 **License:** Proprietary - All Rights Reserved  
-**Last Updated:** January 12, 2026
+**Last Updated:** January 13, 2026
 
-> **🎉 Latest:** App is now code-signed! macOS users can download and run without complicated workarounds.
+> **🎉 Latest:** v1.0.1-alpha released! Windows metadata + comprehensive SmartScreen bypass guide included.
 
 ### What It Does
 
@@ -111,10 +111,10 @@ snapchat-organizer-desktop/
 
 **Complete App Ready to Use** - Download from GitHub Release with the full-featured application included:
 
-**🔗 [👉 Go to Release Downloads](https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.0-alpha)**
+**🔗 [👉 Go to Release Downloads](https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.1-alpha)**
 
 **macOS Installation:**
-1. Download `Snapchat-Organizer-1.0.0-alpha.dmg` from the release page
+1. Download `Snapchat-Organizer-1.0.1-alpha.dmg` from the release page
 2. Open the DMG and drag the app to Applications
 3. **Right-click** the app in Applications → Select **"Open"**
 4. Click **"Open"** in the security dialog (one-time only)
