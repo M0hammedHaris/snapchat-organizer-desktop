@@ -3,15 +3,16 @@
 **Project:** Snapchat Organizer Desktop MVP  
 **Repository:** M0hammedHaris/snapchat-organizer-desktop  
 **Started:** January 11, 2026  
-**Current Phase:** Alpha Release - Public Testing  
-**Status:** 🚀 RELEASED v1.0.0-alpha
+**Current Phase:** Alpha Release - Public Testing (v1.0.1-alpha)  
+**Status:** 🚀 RELEASED v1.0.1-alpha - Windows SmartScreen Fix
 
 ---
 
-## 🎯 Overall Progress: 100% Phase 1 Complete + Alpha Release! 🎉
+## 🎯 Overall Progress: 100% Phase 1 Complete + Alpha Release v1.0.1! 🎉
 
 ### Phase 1: Foundation & MVP (Week 1-2) - 100% Complete ✅
 ### 🚀 Alpha Release - January 12, 2026 ✅
+### 🚀 v1.0.1-alpha - January 13, 2026 ✅ WINDOWS FIX RELEASED
 
 #### ✅ COMPLETED
 
@@ -140,6 +141,14 @@
 - [x] Enhanced GitHub Actions release notes with SmartScreen bypass instructions
 - [x] Documented code signing plan for Phase 3 ($300-500/year)
 - **Commits:** 0a72cc0 (feat: add metadata and SmartScreen bypass documentation)
+
+**v1.0.1-alpha Release** (100%) ✅ RELEASED - January 13, 2026
+- [x] Created v1.0.1-alpha git tag
+- [x] Pushed tag to GitHub (triggers build workflow)
+- [x] GitHub Actions builds native installers for macOS, Windows, Linux
+- [x] Release available at: https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.1-alpha
+- [x] Download links: DMG (macOS), ZIP (Windows), TAR.GZ (Linux)
+- [x] Ready for distribution to alpha testers
 
 ---
 
@@ -301,14 +310,16 @@
 - **Coverage:** Currently ~60% of core logic covered
 
 ### Alpha Release Build ✅
-- **Version:** v1.0.0-alpha
-- **Released:** January 12, 2026
-- **Tag:** v1.0.0-alpha
-- **Commit:** 8dc43b2
+- **v1.0.0-alpha** - January 12, 2026
+- **v1.0.1-alpha** - January 13, 2026 ⭐ CURRENT RELEASE (Windows SmartScreen Fix)
+- **Released:** January 13, 2026
+- **Tag:** v1.0.1-alpha
+- **Commit:** 595c419 (Merge pull request #7 from M0hammedHaris/copilot/fix-windows-app-issue)
 - **Platforms:** macOS, Windows, Linux (via GitHub Actions)
 - **Icon:** Custom Snapchat-themed icon with ghost + folder
 - **Build Tool:** PyInstaller 6.0+ with custom .spec configuration
 - **Distribution:** GitHub Releases (automatic via workflow)
+- **Download:** https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.1-alpha
 - **Documentation:** [BUILD_SUMMARY.md](docs/releases/alpha/BUILD_SUMMARY.md)
 
 ### Reference Documentation
@@ -320,11 +331,12 @@
 
 ---
 
-**Last Updated:** January 12, 2026 - 22:45 UTC  
+**Last Updated:** January 13, 2026 - 03:00 UTC  
 **Updated By:** GitHub Copilot  
-**Session Duration:** ~10 hours total (Phase 1 complete + Alpha build & release)
-**Current Status:** 🚀 ALPHA RELEASED - v1.0.0-alpha available on GitHub  
-**Next Critical Milestone:** Alpha testing with 5-10 users (1-2 weeks)  
+**Session Duration:** ~0.5 hours (v1.0.1-alpha release)
+**Current Status:** 🚀 v1.0.1-alpha RELEASED - Windows SmartScreen fix + enhanced documentation  
+**Next Critical Milestone:** Distribute to alpha testers, collect feedback (1-2 weeks)  
 **Phase 1 Completion Date:** January 12, 2026  
-**Alpha Release:** GitHub Releases v1.0.0-alpha ✅
-**Download:** https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.0-alpha
+**v1.0.0-alpha Release:** January 12, 2026  
+**v1.0.1-alpha Release:** January 13, 2026 ⭐  
+**Download:** https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.1-alpha
