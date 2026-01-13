@@ -17,10 +17,8 @@ a = Analysis(
     pathex=[str(project_root)],
     binaries=[],
     datas=[
-        # Include resources
-        ('resources/icons/*.png', 'resources/icons'),
-        ('resources/icons/*.icns', 'resources/icons'),
-        ('resources/icons/*.ico', 'resources/icons'),
+        # Include resources directory (all icons, styles, etc.)
+        ('resources', 'resources'),
         # Include documentation
         ('docs/releases/alpha/ALPHA_TESTING_GUIDE.md', 'docs'),
         ('docs/releases/alpha/README_ALPHA.md', 'docs'),
