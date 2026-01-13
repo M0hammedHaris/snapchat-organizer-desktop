@@ -188,7 +188,11 @@ jobs:
         ### 📦 Downloads
         
         - **macOS**: `Snapchat-Organizer-macOS.dmg` (macOS 10.13+)
+          - **First run**: Right-click → Open (security warning is normal)
+          - See [macOS Installation Guide](docs/releases/alpha/MACOS_INSTALLATION.md)
         - **Windows**: `Snapchat-Organizer-Windows.zip` (Windows 10/11)
+          - **First run**: Click "More info" → "Run anyway" when SmartScreen appears
+          - See [Windows Installation Guide](docs/releases/alpha/WINDOWS_INSTALLATION.md) for detailed steps
         - **Linux**: `Snapchat-Organizer-Linux.tar.gz` (Ubuntu 20.04+)
         
         ### 📋 Requirements
@@ -196,18 +200,40 @@ jobs:
         - No Python installation required (standalone builds)
         - Snapchat data export (see Help menu in app)
         
+        ### 🛡️ Security Warnings (Expected & Safe!)
+        
+        **macOS Users:** You may see "unidentified developer" warning
+        - **Why:** App is not notarized (costs money, planned for Phase 3)
+        - **Safe to bypass:** Right-click app → Open → Click "Open" again
+        - **One-time only:** After first launch, opens normally
+        
+        **Windows Users:** You may see SmartScreen "Windows protected your PC" warning
+        - **Why:** App is not code-signed (certificates cost $300-500/year, planned for Phase 3)
+        - **Safe to bypass:** Click "More info" → Click "Run anyway"
+        - **One-time only:** After first launch, opens normally
+        - **📖 Detailed guide:** See [WINDOWS_INSTALLATION.md](docs/releases/alpha/WINDOWS_INSTALLATION.md)
+        
+        **Why these warnings appear:**
+        - This is normal for all new indie apps not distributed through app stores
+        - Code signing certificates cost $300-500/year (not feasible for alpha testing)
+        - The app is completely safe - all code is open source and reviewable
+        - No network activity except downloading from Snapchat URLs (optional)
+        - All processing happens locally on your device
+        
         ### 🐛 Known Issues
         
         - First launch may be slow (normal for PyInstaller apps)
-        - macOS may show "unidentified developer" warning (right-click → Open)
+        - macOS may show "unidentified developer" warning (see above - safe to bypass)
+        - Windows may show SmartScreen warning (see above - safe to bypass)
         - Timezone conversion and overlay compositing coming in next release
         
         ### 📝 Testing Instructions
         
         1. Download the appropriate file for your OS
         2. Extract/mount and run the application
-        3. Press F1 for help or see the Help menu
-        4. Follow the testing guide in `docs/releases/alpha/ALPHA_TESTING_GUIDE.md`
+        3. **Bypass security warning if prompted** (one-time only, completely safe)
+        4. Press F1 for help or see the Help menu
+        5. Follow the testing guide in `docs/releases/alpha/ALPHA_TESTING_GUIDE.md`
         
         ### 🙏 Feedback
         

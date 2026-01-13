@@ -126,7 +126,15 @@ snapchat-organizer-desktop/
    - ✅ Integrated help system
    - ✅ No additional setup needed!
 
-**Windows/Linux:** Pre-built packages coming soon. Use Option 2 below.
+**Windows Installation:**
+1. Download `Snapchat-Organizer-Windows.zip` from the release page
+2. Extract the ZIP to a permanent location (e.g., `C:\Program Files\Snapchat Organizer\`)
+3. **Double-click** `Snapchat Organizer.exe`
+4. When Windows SmartScreen appears, click **"More info"** → **"Run anyway"**
+5. App launches with all features ready!
+6. **📖 Detailed Windows Guide:** See [WINDOWS_INSTALLATION.md](docs/releases/alpha/WINDOWS_INSTALLATION.md)
+
+**Linux:** Pre-built packages available. Use `Snapchat-Organizer-Linux.tar.gz` from releases.
 
 #### Option 2: Run from Source (For Developers)
 
@@ -168,6 +176,19 @@ Due to Apple's security policies for apps not distributed through the App Store,
 - **No phone home:** Your data never leaves your device
 
 For more details, see [MACOS_INSTALLATION.md](docs/releases/alpha/MACOS_INSTALLATION.md)
+
+### 🪟 Windows Security Note
+
+Due to Windows SmartScreen protection, you may see a warning on first launch. This is **normal and expected** for new applications:
+
+- **"More info" → "Run anyway"** method: Works perfectly, one-time step
+- **After first launch:** Opens normally every time with double-click
+- **Why it happens:** The app isn't code-signed yet (certificates cost $300-500/year)
+- **No danger:** The app is completely safe - all processing happens locally on your PC
+- **No network activity:** Your data never leaves your device (except when downloading from Snapchat URLs)
+- **Open source:** All code is reviewable on GitHub
+
+For detailed instructions with screenshots, see [WINDOWS_INSTALLATION.md](docs/releases/alpha/WINDOWS_INSTALLATION.md)
 
 ---
 
