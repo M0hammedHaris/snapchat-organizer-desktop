@@ -38,6 +38,12 @@ def main():
     # Create main window
     window = MainWindow()
     
+    # Initialize theme manager and start monitoring
+    from src.utils.theme import ThemeManager
+    theme_manager = ThemeManager()
+    theme_manager.apply_theme(app)
+    theme_manager.start_monitoring(1000)  # Check every 1 second
+    
     # Replace placeholder tabs with actual implementations
     # Download Tab
     download_tab = DownloadTab()

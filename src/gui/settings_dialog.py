@@ -122,6 +122,8 @@ class SettingsDialog(QDialog):
         """
         widget = QWidget()
         layout = QVBoxLayout(widget)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
 
         # Default Paths Group
         paths_group = QGroupBox("Default Paths")
@@ -131,7 +133,7 @@ class SettingsDialog(QDialog):
         self.default_download_edit = QLineEdit()
         download_browse = QPushButton("Browse...")
         download_browse.clicked.connect(
-            lambda: self._browse_directory(self.default_download_edit)
+            lambda _: self._browse_directory(self.default_download_edit)
         )
         download_layout = QHBoxLayout()
         download_layout.addWidget(self.default_download_edit)
@@ -142,7 +144,7 @@ class SettingsDialog(QDialog):
         self.default_export_edit = QLineEdit()
         export_browse = QPushButton("Browse...")
         export_browse.clicked.connect(
-            lambda: self._browse_directory(self.default_export_edit)
+            lambda _: self._browse_directory(self.default_export_edit)
         )
         export_layout = QHBoxLayout()
         export_layout.addWidget(self.default_export_edit)
@@ -154,6 +156,7 @@ class SettingsDialog(QDialog):
         # Behavior Group
         behavior_group = QGroupBox("Behavior")
         behavior_layout = QVBoxLayout(behavior_group)
+        behavior_layout.setSpacing(20)
 
         self.remember_last_paths_check = QCheckBox("Remember last used paths")
         self.remember_last_paths_check.setChecked(True)
@@ -180,6 +183,8 @@ class SettingsDialog(QDialog):
         """
         widget = QWidget()
         layout = QVBoxLayout(widget)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
 
         # Download Settings Group
         download_group = QGroupBox("Download Settings")
@@ -211,6 +216,7 @@ class SettingsDialog(QDialog):
         # Default Options Group
         options_group = QGroupBox("Default Download Options")
         options_layout = QVBoxLayout(options_group)
+        options_layout.setSpacing(20)
 
         self.default_gps_check = QCheckBox("Apply GPS metadata by default")
         self.default_gps_check.setChecked(True)
@@ -237,6 +243,8 @@ class SettingsDialog(QDialog):
         """
         widget = QWidget()
         layout = QVBoxLayout(widget)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
 
         # Matching Settings Group
         matching_group = QGroupBox("Matching Settings")
@@ -271,6 +279,7 @@ class SettingsDialog(QDialog):
         # Organization Options Group
         org_options_group = QGroupBox("Organization Options")
         org_options_layout = QVBoxLayout(org_options_group)
+        org_options_layout.setSpacing(20)
 
         self.copy_files_check = QCheckBox("Copy files instead of moving")
         self.copy_files_check.setChecked(False)
@@ -298,6 +307,8 @@ class SettingsDialog(QDialog):
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
 
         # App icon/logo placeholder
         title = QLabel(f"<h1>{APP_NAME}</h1>")

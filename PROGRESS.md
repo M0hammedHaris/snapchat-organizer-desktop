@@ -214,7 +214,28 @@
 4. **Settings dialog** - ✅ Complete framework with config persistence
 5. **Help system** - ✅ Comprehensive guide with first-run experience
 6. **First-run onboarding** - ✅ Tested and working (5/5 tests passing)
-5. **Help system** - ✅ Comprehensive user documentation integrated
+7. **Help system** - ✅ Comprehensive user documentation integrated
+8. **UI/UX Polishing** - ✅ Implemented Dark Theme & Icon
+    - [x] Created modern dark theme stylesheet (resources/styles/dark.qss)
+    - [x] Updated main.py to load theme on startup
+    - [x] Configured application window icon
+9. **Windows Launch Issue** - ✅ FIXED (January 13, 2026)
+    - [x] Fixed ModuleNotFoundError for darkdetect dependency
+    - [x] Made darkdetect truly optional with try-except block
+- [x] Added darkdetect to requirements.txt
+    - [x] Application now launches successfully on all platforms
+    - **Issue:** App failed to launch due to unconditional darkdetect import
+    - **Fix:** Wrapped import in try-except, added DARKDETECT_AVAILABLE flag
+    - **Files Modified:** src/utils/theme.py, requirements.txt
+10. **Dynamic Theming** - ✅ Implemented Light/Dark Mode Support
+    - [x] Created light theme stylesheet (resources/styles/light.qss)
+    - [x] Implemented theme auto-detection (src/utils/theme.py)
+    - [x] Integrated dynamic switching on startup
+    - [x] implemented real-time theme monitoring (no restart required)
+    - [x] Refactored inline styles to maintainable QSS files
+11. **QCheckBox Visibility Fix** - ✅ FIXED (January 13, 2026)
+    - [x] Fixed invisible checkmark in dark/light themes by using base64 encoded SVG
+    - [x] Removed inline styles from all checkboxes to ensure consistent global theming
 
 ---
 
@@ -331,7 +352,7 @@
 
 ---
 
-**Last Updated:** January 13, 2026 - 03:00 UTC  
+**Last Updated:** January 13, 2026 - 23:15 UTC  
 **Updated By:** GitHub Copilot  
 **Session Duration:** ~0.5 hours (v1.0.1-alpha release)
 **Current Status:** 🚀 v1.0.1-alpha RELEASED - Windows SmartScreen fix + enhanced documentation  
