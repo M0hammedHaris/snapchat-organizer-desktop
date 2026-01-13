@@ -164,6 +164,7 @@
 - [x] Created GitHub PR #8 for release documentation
 - [x] Created v1.0.2-alpha git tag
 - [x] Pushed tag to GitHub for automated build workflow
+- [x] **BUILD FIX:** Fixed PyInstaller spec file - removed wildcard patterns (*.icns, *.png, *.ico), now uses directory inclusion
 - **Features:**
   - Auto-detect light/dark mode based on system settings
   - Smooth theme transitions with QTimer monitoring
@@ -172,6 +173,7 @@
   - Tab icons for visual organization
   - Window icon support
 - **Release:** https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.2-alpha
+- **Status:** Build should now succeed on all platforms (macOS, Windows, Linux)
 
 ---
 
