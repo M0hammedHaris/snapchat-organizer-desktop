@@ -224,6 +224,9 @@
     - [x] Integrated dynamic switching on startup
     - [x] implemented real-time theme monitoring (no restart required)
     - [x] Refactored inline styles to maintainable QSS files
+11. **QCheckBox Visibility Fix** - ✅ FIXED (January 13, 2026)
+    - [x] Fixed invisible checkmark in dark/light themes by using base64 encoded SVG
+    - [x] Removed inline styles from all checkboxes to ensure consistent global theming
 
 ---
 
@@ -338,7 +341,7 @@
 
 ---
 
-**Last Updated:** January 12, 2026 - 22:45 UTC  
+**Last Updated:** January 13, 2026 - 23:15 UTC  
 **Updated By:** GitHub Copilot  
 **Session Duration:** ~10 hours total (Phase 1 complete + Alpha build & release)
 **Current Status:** 🚀 ALPHA RELEASED - v1.0.0-alpha available on GitHub  
