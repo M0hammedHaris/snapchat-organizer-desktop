@@ -11,11 +11,10 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QTabWidget,
     QMessageBox,
-    QMenuBar,
-    QMenu,
 )
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import QSize
 from PySide6.QtGui import QAction, QIcon
+from pathlib import Path
 
 from ..utils.config import (
     APP_NAME,
@@ -38,199 +37,132 @@ logger = get_logger(__name__)
 
 class MainWindow(QMainWindow):
     """Main application window with tabbed interface."""
-    
+
     def __init__(self, parent: Optional[QWidget] = None):
         """Initialize the main window.
-        
+
         Args:
             parent: Parent widget (optional)
         """
         super().__init__(parent)
-        
+
         logger.info(f"Initializing {APP_NAME} v{APP_VERSION}")
-        
+
         self._setup_ui()
         self._create_menu_bar()
-        
+
         logger.debug("Main window initialized")
-        
+
         # Show help dialog on first run (using QTimer to ensure window is shown first)
         from PySide6.QtCore import QTimer
+
         QTimer.singleShot(500, self._check_first_run)
-    
+
     def _setup_ui(self):
         """Set up the user interface."""
         # Window properties
         self.setWindowTitle(f"{APP_NAME} v{APP_VERSION}")
         self.setMinimumSize(QSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT))
         self.resize(QSize(WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT))
-        
+
         # Set window icon
-        from pathlib import Path
-        icon_path = Path(__file__).parent.parent.parent / "resources" / "icon.png"
+        resources_dir = Path(__file__).parent.parent.parent / "resources"
+        icon_path = resources_dir / "icons" / "icon.png"
         if icon_path.exists():
             self.setWindowIcon(QIcon(str(icon_path)))
-        
+
         # Central widget with layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        
+
         layout = QVBoxLayout(central_widget)
         layout.setContentsMargins(10, 10, 10, 10)
-        
+
         # Tab widget
         self.tab_widget = QTabWidget()
         self.tab_widget.setDocumentMode(False)
         self.tab_widget.setTabPosition(QTabWidget.North)
         layout.addWidget(self.tab_widget)
-        
-        # Create placeholder tabs (will be replaced with actual implementations)
-        self._add_placeholder_tabs()
-        
+
         logger.debug("UI setup complete")
-    
-    def _add_placeholder_tabs(self):
-        """Add placeholder tabs for development."""
-        # Download Tab
-        download_placeholder = QWidget()
-        download_layout = QVBoxLayout(download_placeholder)
-        from PySide6.QtWidgets import QLabel
-        download_layout.addWidget(
-            QLabel("Download Tab - Coming soon...")
-        )
-        self.tab_widget.addTab(download_placeholder, "📥 Download Memories")
-        
-        # Organize Tab
-        organize_placeholder = QWidget()
-        organize_layout = QVBoxLayout(organize_placeholder)
-        organize_layout.addWidget(
-            QLabel("Organize Tab - Coming soon...")
-        )
-        self.tab_widget.addTab(organize_placeholder, "📁 Organize Chat Media")
-        
-        # Tools Tab
-        tools_placeholder = QWidget()
-        tools_layout = QVBoxLayout(tools_placeholder)
-        tools_layout.addWidget(
-            QLabel("Tools Tab - Coming soon...")
-        )
-        self.tab_widget.addTab(tools_placeholder, "🔧 Tools")
-    
-    def add_tab(self, widget: QWidget, title: str, index: Optional[int] = None):
-        """Add a tab to the tab widget.
-        
-        Args:
-            widget: Widget to add as tab content
-            title: Tab title
-            index: Optional index to insert tab at
-        """
-        if index is None:
-            self.tab_widget.addTab(widget, title)
-        else:
-            self.tab_widget.insertTab(index, widget, title)
-        
-        logger.debug(f"Added tab: {title}")
-    
-    def set_current_tab(self, index: int):
-        """Set the currently active tab.
-        
-        Args:
-            index: Index of tab to activate
-        """
-        self.tab_widget.setCurrentIndex(index)
-        logger.debug(f"Set current tab to index {index}")
-    
-    def remove_tab(self, index: int):
-        """Remove a tab from the tab widget.
-        
-        Args:
-            index: Index of tab to remove
-        """
-        widget = self.tab_widget.widget(index)
-        self.tab_widget.removeTab(index)
-        
-        if widget:
-            widget.deleteLater()
-        
-        logger.debug(f"Removed tab at index {index}")
-    
+
     def _create_menu_bar(self):
         """Create the application menu bar."""
         menubar = self.menuBar()
-        
+
         # File menu
         file_menu = menubar.addMenu("&File")
-        
+
         # Settings action
         settings_action = QAction("&Settings", self)
         settings_action.setShortcut("Ctrl+,")
         settings_action.triggered.connect(self._show_settings)
         file_menu.addAction(settings_action)
-        
+
         file_menu.addSeparator()
-        
+
         # Exit action
         exit_action = QAction("E&xit", self)
         exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
-        
+
         # Help menu
         help_menu = menubar.addMenu("&Help")
-        
+
         # How to Download Data action
         download_help_action = QAction("How to &Download Snapchat Data", self)
         download_help_action.setShortcut("F1")
         download_help_action.triggered.connect(self._show_download_help)
         help_menu.addAction(download_help_action)
-        
+
         # Documentation action
         docs_action = QAction("&Online Documentation", self)
         docs_action.triggered.connect(self._show_documentation)
         help_menu.addAction(docs_action)
-        
+
         help_menu.addSeparator()
-        
+
         # About action
         about_action = QAction("&About", self)
         about_action.triggered.connect(self._show_about)
         help_menu.addAction(about_action)
-        
+
         logger.debug("Menu bar created")
-    
+
     def _show_settings(self):
         """Show settings dialog."""
         logger.info("Opening settings dialog")
         dialog = SettingsDialog(self)
         dialog.settings_changed.connect(self._on_settings_changed)
         dialog.exec()
-    
+
     def _show_download_help(self):
         """Show help dialog for downloading Snapchat data."""
         logger.info("Opening download help dialog")
         dialog = HelpDialog(self, show_dont_show_again=False)
         dialog.exec()
-    
+
     def _check_first_run(self):
         """Check if this is the first run and show help dialog if needed."""
         if should_show_help_on_startup():
             logger.info("First run detected, showing help dialog")
             dialog = HelpDialog(self, show_dont_show_again=True)
-            result = dialog.exec()
-            
+            dialog.exec()
+
             # If user checked "don't show again", save the preference
-            if hasattr(dialog, 'dont_show_again') and dialog.dont_show_again:
+            if hasattr(dialog, "dont_show_again") and dialog.dont_show_again:
                 logger.info("User opted not to show help on startup")
                 set_show_help_on_startup(False)
-            
+
             # Mark first run as complete
             if is_first_run():
                 mark_first_run_complete()
                 logger.info("First run marked as complete")
-    
+
     def _on_settings_changed(self, settings: dict):
         """Handle settings changes.
-        
+
         Args:
             settings: Dictionary of updated settings
         """
@@ -239,7 +171,7 @@ class MainWindow(QMainWindow):
         # For now, just log the changes
         for key, value in settings.items():
             logger.debug(f"Setting changed: {key} = {value}")
-    
+
     def _show_documentation(self):
         """Show documentation."""
         logger.info("Documentation requested")
@@ -252,7 +184,7 @@ class MainWindow(QMainWindow):
             "For help downloading Snapchat data, use:\n"
             "Help → How to Download Snapchat Data (F1)",
         )
-    
+
     def _show_about(self):
         """Show about dialog."""
         logger.info("About dialog requested")
@@ -273,15 +205,15 @@ class MainWindow(QMainWindow):
             f"</ul>"
             f"<p>© 2026 Mohammed Haris</p>",
         )
-    
+
     def closeEvent(self, event):
         """Handle window close event.
-        
+
         Args:
             event: Close event
         """
         logger.info("Application closing")
-        
+
         # TODO: Check if any operations are in progress
         # For now, just accept the close event
         event.accept()
