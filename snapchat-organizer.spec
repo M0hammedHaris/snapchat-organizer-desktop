@@ -65,7 +65,9 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='resources/icons/icon.icns' if sys.platform == 'darwin' else 'resources/icons/icon.ico',
+    # Icon file - use PNG since .icns/.ico are not available
+    # These will be converted/handled by the build process
+    icon='resources/icons/icon.png' if Path('resources/icons/icon.png').exists() else None,
     version='file_version_info.txt' if sys.platform == 'win32' else None,
     uac_admin=False,  # Don't request admin privileges
     uac_uiaccess=False,
@@ -82,26 +84,27 @@ coll = COLLECT(
     name='Snapchat Organizer',
 )
 
-# macOS .app bundle
-app = BUNDLE(
-    coll,
-    name='Snapchat Organizer.app',
-    icon='resources/icons/icon.icns',
-    bundle_identifier='com.mohammedharis.snapchat-organizer',
-    version='1.0.0-alpha',
-    info_plist={
-        'CFBundleName': 'Snapchat Organizer',
-        'CFBundleDisplayName': 'Snapchat Organizer',
-        'CFBundleShortVersionString': '1.0.0',
-        'CFBundleVersion': '1.0.0-alpha',
-        'CFBundleExecutable': 'Snapchat Organizer',
-        'CFBundleIdentifier': 'com.mohammedharis.snapchat-organizer',
-        'CFBundleInfoDictionaryVersion': '6.0',
-        'CFBundlePackageType': 'APPL',
-        'CFBundleSignature': '????',
-        'LSMinimumSystemVersion': '10.13.0',
-        'NSHighResolutionCapable': True,
-        'NSHumanReadableCopyright': 'Copyright © 2026 Mohammed Haris. All rights reserved.',
-        'LSApplicationCategoryType': 'public.app-category.utilities',
-    },
-)
+# macOS .app bundle (only for macOS)
+if sys.platform == 'darwin':
+    app = BUNDLE(
+        coll,
+        name='Snapchat Organizer.app',
+        icon='resources/icons/icon.png' if Path('resources/icons/icon.png').exists() else None,
+        bundle_identifier='com.mohammedharis.snapchat-organizer',
+        version='1.0.0-alpha',
+        info_plist={
+            'CFBundleName': 'Snapchat Organizer',
+            'CFBundleDisplayName': 'Snapchat Organizer',
+            'CFBundleShortVersionString': '1.0.0',
+            'CFBundleVersion': '1.0.0-alpha',
+            'CFBundleExecutable': 'Snapchat Organizer',
+            'CFBundleIdentifier': 'com.mohammedharis.snapchat-organizer',
+            'CFBundleInfoDictionaryVersion': '6.0',
+            'CFBundlePackageType': 'APPL',
+            'CFBundleSignature': '????',
+            'LSMinimumSystemVersion': '10.13.0',
+            'NSHighResolutionCapable': True,
+            'NSHumanReadableCopyright': 'Copyright © 2026 Mohammed Haris. All rights reserved.',
+            'LSApplicationCategoryType': 'public.app-category.utilities',
+        },
+    )
