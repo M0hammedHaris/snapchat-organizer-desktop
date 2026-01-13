@@ -165,6 +165,7 @@
 - [x] Created v1.0.2-alpha git tag
 - [x] Pushed tag to GitHub for automated build workflow
 - [x] **BUILD FIX:** Fixed PyInstaller spec file - removed wildcard patterns (*.icns, *.png, *.ico), now uses directory inclusion
+- [x] **BUILD FIX 2:** Fixed icon file references - use PNG icon file instead of missing .icns/.ico files, handle missing icons gracefully
 - **Features:**
   - Auto-detect light/dark mode based on system settings
   - Smooth theme transitions with QTimer monitoring
