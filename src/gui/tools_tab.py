@@ -63,8 +63,8 @@ class ToolButton(QPushButton):
         # Use QSS class for styling
         self.setProperty("class", "ToolButton")
         
-        # Create button text with icon, title, and description
-        button_text = f"{icon}  {title}\n{description}"
+        # Create button text with icon, title, and description with better spacing
+        button_text = f"{icon}  {title}\n\n{description}"
         self.setText(button_text)
 
 
