@@ -1,103 +1,137 @@
-# Project Structure
+---
+inclusion: always
+---
 
-## Directory Organization
+# Project Structure & Architecture Guide
+
+## Critical Directory Structure
+
+When working with this codebase, ALWAYS respect this structure:
 
 ```
-snapchat-organizer-desktop/
-├── src/                           # Source code
-│   ├── main.py                    # Application entry point
-│   ├── gui/                       # UI components (PySide6)
-│   │   ├── main_window.py         # Main window with tabs
-│   │   ├── download_tab.py        # Download memories tab
-│   │   ├── organize_tab.py        # Organize chat media tab
-│   │   ├── tools_tab.py           # Quick tools tab
-│   │   ├── progress_widget.py     # Reusable progress display
-│   │   ├── settings_dialog.py     # Settings configuration
-│   │   └── help_dialog.py         # Help system
-│   ├── core/                      # Business logic
-│   │   ├── downloader.py          # Memory downloader
-│   │   ├── organizer.py           # Chat media organizer
-│   │   ├── tools_core.py          # Tools functionality
-│   │   └── *_worker.py            # QThread workers
-│   ├── license/                   # License management (Phase 2)
-│   └── utils/                     # Utilities
-│       ├── config.py              # App configuration & constants
-│       ├── logger.py              # Logging setup
-│       └── theme.py               # Theme management
-├── resources/                     # Static resources
-│   ├── icons/                     # App icons (PNG format)
-│   ├── images/                    # UI images
-│   └── styles/                    # Qt stylesheets (QSS)
-├── tests/                         # Unit tests
-├── docs/                          # Documentation
-├── scripts/                       # Build scripts
-└── requirements.txt               # Python dependencies
+src/
+├── main.py                    # Entry point - DO NOT modify without review
+├── gui/                       # PySide6 UI components ONLY
+│   ├── main_window.py         # Main tabbed interface
+│   ├── *_tab.py              # Tab implementations (download, organize, tools)
+│   ├── *_dialog.py           # Modal dialogs (settings, help)
+│   └── progress_widget.py     # Reusable progress component
+├── core/                      # Business logic - NO GUI code here
+│   ├── downloader.py          # Memory download logic
+│   ├── organizer.py           # Chat media organization
+│   ├── tools_core.py          # Tools functionality
+│   └── *_worker.py           # QThread workers for background tasks
+├── utils/                     # Shared utilities
+│   ├── config.py              # Constants & configuration (READ FIRST)
+│   ├── logger.py              # Logging setup
+│   └── theme.py               # UI theming
+└── license/                   # License system (Phase 2 - minimal changes)
 ```
 
-## Architecture Patterns
+## Mandatory Architecture Rules
 
-### GUI Architecture
-- **Main Window:** Tabbed interface with three primary tabs
-- **Worker Threads:** All long-running operations use QThread workers
-- **Progress Tracking:** Reusable progress widget for all operations
-- **Settings:** Centralized configuration with persistent storage
+### 1. Strict Layer Separation
+- **GUI layer** (`src/gui/`): PySide6 widgets, UI logic, user interactions
+- **Core layer** (`src/core/`): Business logic, data processing, algorithms
+- **Utils layer** (`src/utils/`): Shared utilities, configuration, logging
+- **NEVER** import GUI components in core modules
+- **NEVER** put business logic in GUI modules
 
-### Core Logic Separation
-- **GUI Layer:** PySide6 widgets in `src/gui/`
-- **Business Logic:** Core functionality in `src/core/`
-- **Workers:** Background processing in `*_worker.py` files
-- **Utilities:** Shared utilities in `src/utils/`
+### 2. Threading Requirements (CRITICAL)
+- **Main thread**: GUI operations ONLY - never block with I/O or processing
+- **Worker threads**: ALL file operations, network requests, heavy processing
+- **Communication**: Use Qt signals/slots between threads - NEVER direct calls
+- **Pattern**: Create `*_worker.py` files inheriting from `QObject`, use `moveToThread()`
 
-### Configuration Management
-- **Constants:** Defined in `src/utils/config.py`
-- **Feature Flags:** Tier-based feature access control
-- **Settings:** JSON-based user preferences
-- **Paths:** Centralized path management
+### 3. Configuration Access
+- **ALWAYS** read constants from `src/utils/config.py` first
+- **NEVER** hardcode paths, limits, or feature flags
+- Use `get_logger(__name__)` for all logging - NO print statements
 
-## File Naming Conventions
+## File Creation Rules
 
-### Python Files
-- **Modules:** `snake_case.py`
-- **Classes:** `PascalCase` (e.g., `MainWindow`)
-- **Functions:** `snake_case()`
-- **Constants:** `UPPER_SNAKE_CASE`
+### New Python Files
+- **GUI components**: Place in `src/gui/`, suffix with purpose (`*_tab.py`, `*_dialog.py`)
+- **Business logic**: Place in `src/core/`, descriptive names (`*_processor.py`)
+- **Background work**: Create `*_worker.py` in `src/core/` with QObject pattern
+- **Utilities**: Add to `src/utils/` only if truly shared across modules
 
-### Resource Files
-- **Icons:** `tab_*.png`, `icon.png`
-- **Styles:** `light.qss`, `dark.qss`
-- **Documentation:** `UPPER_CASE.md` for project docs, `lower_case.md` for feature docs
+### Tests
+- **Location**: `tests/` directory (NOT inside `src/`)
+- **Naming**: `test_*.py` matching source structure
+- **Structure**: Mirror `src/` hierarchy in `tests/`
 
-## Import Structure
+### Documentation
+- **Feature docs**: `docs/[feature_name]/` (lowercase, hyphens)
+- **Project docs**: Root level (UPPERCASE.md)
 
-### Path Setup
+## Import Patterns (Enforce Strictly)
+
 ```python
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-```
+# Standard library first
+from pathlib import Path
+from typing import Optional, List
 
-### Import Patterns
-```python
-# PySide6 imports
+# Third-party second
 from PySide6.QtWidgets import QWidget, QVBoxLayout
-from PySide6.QtCore import QThread, Signal
-from PySide6.QtGui import QIcon
+from PySide6.QtCore import QThread, Signal, QObject
 
-# Internal imports
-from src.utils.config import APP_NAME, APP_VERSION
+# Internal imports last - use absolute imports from src/
+from src.utils.config import APP_NAME, SUPPORTED_FORMATS
 from src.utils.logger import get_logger
-from src.core.downloader import MemoryDownloader
+from src.core.organizer import MediaOrganizer
 ```
 
-## Threading Model
+## Worker Thread Pattern (Use This Exactly)
 
-- **Main Thread:** GUI operations only
-- **Worker Threads:** All file I/O, network requests, and processing
-- **Signals/Slots:** Communication between threads
-- **Progress Updates:** Regular progress signals to update UI
+```python
+# In src/core/*_worker.py
+class ProcessWorker(QObject):
+    progress = Signal(int, str)  # percentage, message
+    finished = Signal(dict)      # results
+    error = Signal(str)          # error message
+    
+    def __init__(self, data):
+        super().__init__()
+        self.data = data
+    
+    @Slot()
+    def process(self):
+        try:
+            # Do work here
+            self.progress.emit(50, "Processing...")
+            result = self.do_work()
+            self.finished.emit(result)
+        except Exception as e:
+            self.error.emit(str(e))
 
-## Configuration Files
+# In GUI code
+def start_processing(self):
+    self.thread = QThread()
+    self.worker = ProcessWorker(data)
+    self.worker.moveToThread(self.thread)
+    
+    # Connect signals
+    self.worker.progress.connect(self.update_progress)
+    self.worker.finished.connect(self.on_finished)
+    self.worker.error.connect(self.on_error)
+    self.thread.started.connect(self.worker.process)
+    
+    self.thread.start()
+```
 
-- **Application Config:** `~/.snapchat-organizer/config.json`
-- **Database:** `~/.snapchat-organizer/organizer.db`
-- **Logs:** `~/.snapchat-organizer/logs/`
-- **Cache:** `~/.snapchat-organizer/cache/`
+## Configuration & State Management
+
+- **User config**: `~/.snapchat-organizer/config.json`
+- **Database**: `~/.snapchat-organizer/organizer.db` (SQLAlchemy)
+- **Logs**: `~/.snapchat-organizer/logs/`
+- **Cache**: `~/.snapchat-organizer/cache/`
+
+Access paths through `src/utils/config.py` constants, never hardcode.
+
+## Error Handling Strategy
+
+1. **User errors**: Show QMessageBox with friendly message
+2. **Recoverable errors**: Log warning, continue operation
+3. **Critical errors**: Log exception, show dialog, graceful shutdown
+4. **Always** use proper exception types, never bare `except:`
