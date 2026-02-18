@@ -46,29 +46,29 @@ def _calculate_checksum(key_body: str) -> str:
 def generate_license_key(tier: str = "pro", prefix: Optional[str] = None) -> str:
     """Generate a new license key.
     
-    The key format is: PPPP-XXXX-XXXX-XXXX-XXCC
+    The key format is: PPPPP-XXXXX-XXXXX-XXXXX-XXXCC
     Where:
-    - PPPP: Prefix (tier identifier or custom prefix)
-    - XXXX-XXXX-XXXX: Random segments
+    - PPPPP: Prefix (tier identifier or custom prefix, 5 chars)
+    - XXXXX-XXXXX-XXXXX: Random segments
     - CC: Checksum (last 2 chars of last segment)
     
     Args:
         tier: License tier (free, pro, premium)
-        prefix: Optional custom prefix (4 chars)
+        prefix: Optional custom prefix (5 chars)
         
     Returns:
-        Formatted license key string (e.g., "PRO2-ABCD-EFGH-IJKL-MN12")
+        Formatted license key string (e.g., "PRO26-ABCDE-EFGHI-JKLMN-OP12Q")
     """
-    # Determine prefix based on tier or custom
+    # Determine prefix based on tier or custom (5 chars)
     if prefix:
-        key_prefix = prefix[:4].upper().ljust(4, '0')
+        key_prefix = prefix[:5].upper().ljust(5, '0')
     else:
         tier_prefixes = {
-            'free': 'FREE',
-            'pro': 'PRO2',
-            'premium': 'PREM',
+            'free': 'FREE0',
+            'pro': 'PRO26',
+            'premium': 'PREM0',
         }
-        key_prefix = tier_prefixes.get(tier, 'UNKN')
+        key_prefix = tier_prefixes.get(tier, 'UNKN0')
     
     # Generate random segments (3 segments of 5 chars each)
     random_segments = []
@@ -176,9 +176,9 @@ def extract_tier_from_key(key: str) -> Optional[str]:
     prefix = normalized.split('-')[0]
     
     prefix_to_tier = {
-        'FREE': 'free',
-        'PRO2': 'pro',
-        'PREM': 'premium',
+        'FREE0': 'free',
+        'PRO26': 'pro',
+        'PREM0': 'premium',
     }
     
     return prefix_to_tier.get(prefix)
