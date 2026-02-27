@@ -5,9 +5,9 @@ import sys
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from utils.config import (
+from src.utils.config import (
     is_first_run,
     mark_first_run_complete,
     should_show_help_on_startup,

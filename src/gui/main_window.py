@@ -31,6 +31,7 @@ from ..utils.config import (
 from ..utils.logger import get_logger
 from .settings_dialog import SettingsDialog
 from .help_dialog import HelpDialog
+from .license_dialog import LicenseDialog
 
 logger = get_logger(__name__)
 
@@ -99,6 +100,12 @@ class MainWindow(QMainWindow):
         settings_action.triggered.connect(self._show_settings)
         file_menu.addAction(settings_action)
 
+        # License action
+        license_action = QAction("&License", self)
+        license_action.setShortcut("Ctrl+L")
+        license_action.triggered.connect(self._show_license)
+        file_menu.addAction(license_action)
+
         file_menu.addSeparator()
 
         # Exit action
@@ -136,6 +143,23 @@ class MainWindow(QMainWindow):
         dialog = SettingsDialog(self)
         dialog.settings_changed.connect(self._on_settings_changed)
         dialog.exec()
+
+    def _show_license(self):
+        """Show license management dialog."""
+        logger.info("Opening license dialog")
+        dialog = LicenseDialog(self)
+        dialog.license_changed.connect(self._on_license_changed)
+        dialog.exec()
+
+    def _on_license_changed(self, license_info: dict):
+        """Handle license status changes.
+
+        Args:
+            license_info: Dictionary with updated license information
+        """
+        logger.info(f"License status changed: {license_info.get('status', 'unknown')}")
+        # TODO: Update UI to reflect license status
+        # This could include enabling/disabling Pro features
 
     def _show_download_help(self):
         """Show help dialog for downloading Snapchat data."""

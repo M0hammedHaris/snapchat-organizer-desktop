@@ -19,6 +19,7 @@ from src.gui.organize_tab import OrganizeTab
 from src.gui.tools_tab import ToolsTab
 from src.utils.config import APP_NAME, APP_VERSION
 from src.utils.logger import get_logger
+from src.license import get_license_manager
 
 logger = get_logger(__name__)
 
@@ -26,6 +27,12 @@ logger = get_logger(__name__)
 def main():
     """Main application entry point."""
     logger.info(f"Starting {APP_NAME} v{APP_VERSION}")
+
+    # Initialize license system
+    logger.info("Initializing license system...")
+    license_manager = get_license_manager()
+    license_manager.initialize()
+    logger.info(f"License status: {license_manager.get_status_message()}")
 
     # Create application
     app = QApplication(sys.argv)
