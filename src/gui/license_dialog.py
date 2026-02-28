@@ -26,7 +26,7 @@ from PySide6.QtGui import QFont
 
 from ..license.license_manager import LicenseManager
 from ..license.api_client import APIError
-from ..utils.config import APP_NAME, TIER_FREE, TIER_PRO, TIER_PREMIUM
+from ..utils.config import APP_NAME, TIER_FREE, TIER_PRO, TIER_PREMIUM, DEVICE_LIMITS
 
 logger = logging.getLogger(__name__)
 
@@ -241,11 +241,13 @@ class LicenseDialog(QDialog):
         self._status_tier = QLabel("—")
         self._status_key = QLabel("—")
         self._status_key.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        self._status_trial = QLabel("—")
+        self._status_limit = QLabel("—")
+        self._status_devices = QLabel("—")
         self._status_expires = QLabel("—")
         license_layout.addRow("Tier:", self._status_tier)
         license_layout.addRow("Key:", self._status_key)
-        license_layout.addRow("Trial:", self._status_trial)
+        license_layout.addRow("Downloads:", self._status_limit)
+        license_layout.addRow("Devices:", self._status_devices)
         license_layout.addRow("Expires:", self._status_expires)
         layout.addWidget(license_group)
 
@@ -413,15 +415,28 @@ class LicenseDialog(QDialog):
     def _refresh_status_page(self):
         """Update the status page with current license data."""
         mgr = self._license_manager
+        tier = mgr.current_tier
         self._status_email.setText(mgr.user_email or "—")
         self._status_name.setText(mgr.user_name or "—")
-        self._status_tier.setText(mgr.current_tier.upper())
+        self._status_tier.setText(tier.upper())
         self._status_key.setText(mgr.license_key or "—")
-        self._status_trial.setText("Yes" if mgr.is_trial else "No")
+
+        # Show download limit per tier
+        if tier == TIER_FREE:
+            self._status_limit.setText("100 / month")
+        elif tier == TIER_PRO:
+            self._status_limit.setText("1,000 / month")
+        else:
+            self._status_limit.setText("Unlimited")
+
+        # Show device count
+        max_dev = mgr.max_devices
+        active_dev = mgr.active_devices
+        self._status_devices.setText(f"{active_dev} / {max_dev}")
+
         self._status_expires.setText(mgr.expires_at or "Never")
 
-        # Hide upgrade buttons if already on that tier
-        tier = mgr.current_tier
+        # Show upgrade buttons based on current tier
         self._upgrade_btn.setVisible(tier == TIER_FREE)
         self._premium_btn.setVisible(tier != TIER_PREMIUM)
 

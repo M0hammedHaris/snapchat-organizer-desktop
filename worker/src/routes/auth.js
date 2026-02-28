@@ -1,7 +1,7 @@
 /**
  * Auth routes - Register, Login, Logout, Profile
  * 
- * POST /api/auth/register  - Create account + free license + 7-day trial
+ * POST /api/auth/register  - Create account + free license
  * POST /api/auth/login     - Login and get session token
  * POST /api/auth/logout    - Invalidate session
  * GET  /api/auth/profile   - Get current user profile + license info
@@ -12,7 +12,6 @@ import { jsonResponse, errorResponse, successResponse } from '../utils/response.
 import { authenticateRequest } from '../utils/auth.js';
 
 const SESSION_DURATION_DAYS = 30;
-const TRIAL_DURATION_DAYS = 7;
 
 export async function handleAuth(request, env, path) {
   const db = env.DB;
@@ -75,15 +74,13 @@ async function register(request, db) {
 
   const userId = userResult.id;
 
-  // Generate trial license (Pro tier for 7 days)
+  // Generate free tier license
   const licenseKey = generateLicenseKey();
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + TRIAL_DURATION_DAYS);
 
   await db.prepare(
-    `INSERT INTO licenses (user_id, license_key, tier, status, is_trial, expires_at, max_devices)
-     VALUES (?, ?, 'pro', 'active', 1, ?, 2)`
-  ).bind(userId, licenseKey, expiresAt.toISOString()).run();
+    `INSERT INTO licenses (user_id, license_key, tier, status, is_trial, max_devices)
+     VALUES (?, ?, 'free', 'active', 0, 1)`
+  ).bind(userId, licenseKey).run();
 
   // Create session
   const token = generateToken();
@@ -99,11 +96,11 @@ async function register(request, db) {
     user: { id: userId, email: email.toLowerCase(), name },
     license: {
       key: licenseKey,
-      tier: 'pro',
-      is_trial: true,
-      expires_at: expiresAt.toISOString(),
+      tier: 'free',
+      is_trial: false,
+      expires_at: null,
     }
-  }, 'Account created with 7-day Pro trial');
+  }, 'Account created successfully');
 }
 
 async function login(request, db) {
@@ -152,17 +149,17 @@ async function login(request, db) {
     `SELECT * FROM licenses WHERE user_id = ? AND status = 'active' ORDER BY created_at DESC LIMIT 1`
   ).bind(user.id).first();
 
-  // Check if trial expired
+  // Build license info
   let licenseInfo = null;
   if (license) {
+    // Check if paid subscription expired
     const isExpired = license.expires_at && new Date(license.expires_at) < new Date();
-    if (isExpired && license.is_trial) {
-      // Downgrade trial to free
+    if (isExpired && license.tier !== 'free') {
+      // Downgrade expired subscription to free
       await db.prepare(
-        "UPDATE licenses SET tier = 'free', status = 'expired', is_trial = 0 WHERE id = ?"
+        "UPDATE licenses SET status = 'expired' WHERE id = ?"
       ).bind(license.id).run();
       
-      // Create free license
       const freeKey = generateLicenseKey();
       await db.prepare(
         `INSERT INTO licenses (user_id, license_key, tier, status, is_trial, max_devices)
@@ -174,7 +171,7 @@ async function login(request, db) {
       licenseInfo = {
         key: license.license_key,
         tier: license.tier,
-        is_trial: !!license.is_trial,
+        is_trial: false,
         expires_at: license.expires_at,
       };
     }

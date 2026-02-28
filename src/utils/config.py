@@ -49,12 +49,24 @@ TIER_FREE = "free"
 TIER_PRO = "pro"
 TIER_PREMIUM = "premium"
 
+# Device limits per tier
+# Free: 1 device, Pro: 2 devices, Premium: 3 devices
+DEVICE_LIMITS: Dict[str, int] = {
+    TIER_FREE: 1,
+    TIER_PRO: 2,
+    TIER_PREMIUM: 3,
+}
+
 # Feature access control by tier
+#
+# Free:    100 downloads/month, no organize tab, tools: organize_by_year + fix_timestamps
+# Pro:     1000 downloads/month, all organize features, all tools
+# Premium: Unlimited downloads, all features
 FEATURE_ACCESS: Dict[str, Dict[str, Any]] = {
     TIER_FREE: {
         'max_files_per_month': 100,
-        'download_memories': False,
-        'organize_chat_media': True,
+        'download_memories': True,
+        'organize_chat_media': False,
         'overlay_compositing': False,
         'gps_embedding': False,
         'timezone_conversion': False,
@@ -66,7 +78,7 @@ FEATURE_ACCESS: Dict[str, Dict[str, Any]] = {
         'cloud_backup': False,
     },
     TIER_PRO: {
-        'max_files_per_month': -1,  # unlimited
+        'max_files_per_month': 1000,
         'download_memories': True,
         'organize_chat_media': True,
         'overlay_compositing': True,
@@ -80,7 +92,7 @@ FEATURE_ACCESS: Dict[str, Dict[str, Any]] = {
         'cloud_backup': False,
     },
     TIER_PREMIUM: {
-        'max_files_per_month': -1,
+        'max_files_per_month': -1,  # unlimited
         'download_memories': True,
         'organize_chat_media': True,
         'overlay_compositing': True,
@@ -94,10 +106,6 @@ FEATURE_ACCESS: Dict[str, Dict[str, Any]] = {
         'cloud_backup': True,
     }
 }
-
-# Trial settings
-TRIAL_DURATION_DAYS = 7
-TRIAL_TIER = TIER_PRO  # Full features during trial
 
 # UI settings
 WINDOW_MIN_WIDTH = 900

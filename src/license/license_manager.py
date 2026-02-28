@@ -14,7 +14,7 @@ import uuid
 import logging
 from typing import Optional, Dict, Any
 
-from ..utils.config import APP_DIR, TIER_FREE
+from ..utils.config import APP_DIR, TIER_FREE, DEVICE_LIMITS
 from .api_client import LicenseAPIClient, APIError
 
 logger = logging.getLogger(__name__)
@@ -66,6 +66,16 @@ class LicenseManager:
     def expires_at(self) -> Optional[str]:
         """Get the license expiry date."""
         return self._data.get('expires_at')
+
+    @property
+    def max_devices(self) -> int:
+        """Get the maximum number of devices allowed for this tier."""
+        return self._data.get('max_devices', DEVICE_LIMITS.get(self.current_tier, 1))
+
+    @property
+    def active_devices(self) -> int:
+        """Get the number of currently active devices."""
+        return self._data.get('active_devices', 0)
 
     @property
     def device_id(self) -> str:
@@ -130,6 +140,8 @@ class LicenseManager:
                 self._data['expires_at'] = data.get('expires_at')
                 self._data['license_key'] = data.get('license_key')
                 self._data['valid'] = data.get('valid', False)
+                self._data['max_devices'] = data.get('max_devices', DEVICE_LIMITS.get(data.get('tier', TIER_FREE), 1))
+                self._data['active_devices'] = data.get('active_devices', 0)
                 self._save_local_data()
 
                 return {
@@ -202,6 +214,7 @@ class LicenseManager:
                 self._data['license_key'] = data.get('license_key', self._data.get('license_key'))
                 self._data['is_trial'] = data.get('is_trial', False)
                 self._data['expires_at'] = data.get('expires_at')
+                self._data['max_devices'] = data.get('max_devices', DEVICE_LIMITS.get(data.get('tier', self.current_tier), 1))
                 self._data['valid'] = True
                 self._save_local_data()
             return response
@@ -250,6 +263,7 @@ class LicenseManager:
             self._data['tier'] = license_info.get('tier', TIER_FREE)
             self._data['is_trial'] = license_info.get('is_trial', False)
             self._data['expires_at'] = license_info.get('expires_at')
+            self._data['max_devices'] = license_info.get('max_devices', DEVICE_LIMITS.get(license_info.get('tier', TIER_FREE), 1))
 
         self._save_local_data()
 

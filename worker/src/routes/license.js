@@ -60,21 +60,18 @@ async function validateLicense(request, db) {
     });
   }
 
-  // Check expiry
+  // Check expiry (for paid subscriptions)
   if (license.expires_at && new Date(license.expires_at) < new Date()) {
-    if (license.is_trial) {
-      // Expire the trial 
-      await db.prepare(
-        "UPDATE licenses SET status = 'expired' WHERE id = ?"
-      ).bind(license.id).run();
-      
-      return successResponse({
-        valid: false,
-        tier: 'free',
-        reason: 'Trial period has expired',
-        expired: true,
-      });
-    }
+    await db.prepare(
+      "UPDATE licenses SET status = 'expired' WHERE id = ?"
+    ).bind(license.id).run();
+    
+    return successResponse({
+      valid: false,
+      tier: 'free',
+      reason: 'Subscription has expired',
+      expired: true,
+    });
   }
 
   // Check/register device activation
@@ -109,12 +106,19 @@ async function validateLicense(request, db) {
     ).bind(license.id, device_id, device_name || 'Unknown', platform || 'Unknown').run();
   }
 
+  // Count active devices for this license
+  const activeDeviceCount = await db.prepare(
+    'SELECT COUNT(*) as count FROM device_activations WHERE license_id = ? AND is_active = 1'
+  ).bind(license.id).first();
+
   return successResponse({
     valid: true,
     tier: license.tier,
-    is_trial: !!license.is_trial,
+    is_trial: false,
     expires_at: license.expires_at,
     license_key: license.license_key,
+    max_devices: license.max_devices,
+    active_devices: activeDeviceCount.count,
   });
 }
 

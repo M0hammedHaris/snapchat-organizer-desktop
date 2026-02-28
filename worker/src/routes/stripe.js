@@ -177,7 +177,8 @@ async function mockConfirmPayment(request, env, db) {
 
   // Create new paid license
   const licenseKey = generateLicenseKey();
-  const maxDevices = tier === 'premium' ? 5 : 2;
+  // Device limits: free=1, pro=2, premium=3
+  const maxDevices = tier === 'premium' ? 3 : 2;
 
   // Subscription lasts 30 days from now (mock)
   const expiresAt = new Date();
@@ -257,7 +258,8 @@ async function handleCheckoutComplete(session, db) {
   ).bind(userId).run();
 
   const licenseKey = generateLicenseKey();
-  const maxDevices = tier === 'premium' ? 5 : 2;
+  // Device limits: free=1, pro=2, premium=3
+  const maxDevices = tier === 'premium' ? 3 : 2;
 
   await db.prepare(
     `INSERT INTO licenses (user_id, license_key, tier, status, is_trial, max_devices, stripe_subscription_id)
