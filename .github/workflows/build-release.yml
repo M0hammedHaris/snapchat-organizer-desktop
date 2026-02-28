@@ -73,13 +73,29 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
+    - name: Install PyInstaller
+      run: |
+        pip install pyinstaller>=6.0.0
+
     - name: Build with PyInstaller
       run: |
         pyinstaller snapchat-organizer.spec --clean --noconfirm
-        
+
+    - name: Verify build output
+      run: |
+        Write-Host "Build output contents:"
+        Get-ChildItem -Path dist -Recurse | Select-Object FullName
+        # Verify python311.dll exists in the output
+        $pythonDll = Get-ChildItem -Path dist -Recurse -Filter "python3*.dll" | Select-Object -First 1
+        if ($pythonDll) {
+          Write-Host "Found Python DLL: $($pythonDll.FullName)"
+        } else {
+          Write-Host "WARNING: python3*.dll not found in build output!"
+        }
+
     - name: Create ZIP
       run: |
-        Compress-Archive -Path "dist\Snapchat Organizer\*" -DestinationPath "dist\Snapchat-Organizer-Windows.zip"
+        Compress-Archive -Path "dist\SnapchatOrganizer\*" -DestinationPath "dist\Snapchat-Organizer-Windows.zip"
         
     - name: Upload Windows artifacts
       uses: actions/upload-artifact@v4

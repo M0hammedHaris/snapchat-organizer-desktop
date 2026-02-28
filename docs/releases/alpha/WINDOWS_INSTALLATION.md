@@ -35,14 +35,19 @@ When you first run Snapchat Organizer Desktop, **Windows Defender SmartScreen ma
 
 ### Step 2: Extract the ZIP File
 
+> **⚠️ IMPORTANT: You MUST extract the ZIP before running the app!**  
+> Do NOT double-click the .exe inside the ZIP — Windows runs it from a temp folder, which causes "Failed to load Python DLL" errors.
+
 1. **Right-click** on `Snapchat-Organizer-Windows.zip`
 2. Select **"Extract All..."**
-3. Choose a destination (e.g., `C:\Program Files\Snapchat Organizer\`)
+3. Choose a destination **without spaces in the path** (recommended: `C:\SnapchatOrganizer\`)
+   - Avoid paths like `C:\Program Files\` or folders with special characters
 4. Click **"Extract"**
+5. Open the extracted folder and run **`SnapchatOrganizer.exe`**
 
 ### Step 3: Bypass Windows SmartScreen (First Run Only)
 
-When you first double-click `Snapchat Organizer.exe`, you'll see this screen:
+When you first double-click `SnapchatOrganizer.exe`, you'll see this screen:
 
 ```
 Windows protected your PC
@@ -102,18 +107,18 @@ Now Windows Defender will trust the app!
 ### Step 4: Create a Desktop Shortcut (Optional)
 
 1. Navigate to the extracted folder
-2. **Right-click** on `Snapchat Organizer.exe`
+2. **Right-click** on `SnapchatOrganizer.exe`
 3. Select **Send to** → **Desktop (create shortcut)**
 4. Now you can launch the app from your desktop!
 
 ### Step 5: Pin to Start Menu or Taskbar (Optional)
 
 **Pin to Start:**
-1. Right-click `Snapchat Organizer.exe`
+1. Right-click `SnapchatOrganizer.exe`
 2. Select **Pin to Start**
 
 **Pin to Taskbar:**
-1. Right-click `Snapchat Organizer.exe`
+1. Right-click `SnapchatOrganizer.exe`
 2. Select **Pin to taskbar**
 
 ---
@@ -140,12 +145,26 @@ Once the app launches successfully:
 
 ## ❓ Troubleshooting
 
-### Issue: "Cannot find Python"
+### Issue: "Failed to load Python DLL" or "Cannot find Python"
 
-**Solution:** This is a standalone build - **no Python installation required!** If you see this error, you may be trying to run the source code instead of the built executable.
+**This is the most common issue.** It usually means the app was run without extracting the ZIP first.
 
-- Make sure you're running `Snapchat Organizer.exe` from the extracted folder
-- NOT running any `.py` files
+**Solution:**
+
+1. **Make sure you extracted the ZIP** (see Step 2 above)
+   - Do NOT run the .exe from inside the ZIP — Windows extracts to a temp folder that breaks DLL loading
+   - Right-click the ZIP → "Extract All..." → choose a folder like `C:\SnapchatOrganizer\`
+
+2. **Extract to a path without spaces** in the folder name
+   - Bad: `C:\Users\My Name\Downloads\Snapchat Organizer Windows\`
+   - Good: `C:\SnapchatOrganizer\`
+
+3. **Install Visual C++ Redistributable** if the error persists:
+   - Download from [Microsoft](https://aka.ms/vs/17/release/vc_redist.x64.exe)
+   - Run the installer and restart your computer
+
+4. **Check your antivirus** — some programs (Norton, McAfee, Avast) quarantine DLL files
+   - Add the extracted app folder to your antivirus exclusions
 
 ### Issue: "App won't start" or crashes immediately
 
