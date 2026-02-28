@@ -1,0 +1,23 @@
+name = "snapchat-organizer-license-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "snapchat-organizer-license"
+database_id = "edb7a359-335c-4ea0-8c40-b34038a700f5"
+
+[vars]
+# Non-secret env vars (secrets set via `wrangler secret put`)
+CHECKOUT_SUCCESS_URL = "https://snapchat-organizer.machive.dev/success"
+CHECKOUT_CANCEL_URL = "https://snapchat-organizer.machive.dev/cancel"
+
+# Set to "true" to enable mock Stripe mode (no real Stripe account needed)
+MOCK_STRIPE = "true"
+
+# Secrets to set via CLI (only needed when MOCK_STRIPE = "false"):
+# wrangler secret put STRIPE_SECRET_KEY
+# wrangler secret put STRIPE_WEBHOOK_SECRET
+# wrangler secret put STRIPE_PRICE_PRO
+# wrangler secret put STRIPE_PRICE_PREMIUM

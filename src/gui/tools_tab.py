@@ -68,6 +68,9 @@ class ToolButton(QPushButton):
         self.setText(button_text)
 
 
+PRO_LOCK_SUFFIX = " 🔒"
+
+
 class ToolsTab(QWidget):
     """Tools tab widget for utility operations.
     
@@ -690,3 +693,26 @@ Files Failed: {results.get('failed_files', 0)}
 
 Status: ⚠️ Overlay application not yet fully implemented
 """
+
+    def set_license_tier(self, tier: str):
+        """Enable/disable tool buttons based on license tier.
+
+        Args:
+            tier: License tier (free, pro, premium)
+        """
+        from ..utils.config import can_access_feature
+
+        pro_tools = [
+            (self.verify_button, 'verify_downloads'),
+            (self.duplicates_button, 'remove_duplicates'),
+            (self.overlays_button, 'overlay_compositing'),
+            (self.timezone_button, 'timezone_conversion'),
+        ]
+        for button, feature in pro_tools:
+            allowed = can_access_feature(tier, feature)
+            button.setEnabled(allowed)
+            if not allowed:
+                current = button.text()
+                if PRO_LOCK_SUFFIX not in current:
+                    button.setText(current + PRO_LOCK_SUFFIX)
+

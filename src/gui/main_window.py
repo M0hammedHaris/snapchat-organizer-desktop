@@ -38,13 +38,15 @@ logger = get_logger(__name__)
 class MainWindow(QMainWindow):
     """Main application window with tabbed interface."""
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent: Optional[QWidget] = None, license_manager=None):
         """Initialize the main window.
 
         Args:
             parent: Parent widget (optional)
+            license_manager: LicenseManager instance for license state
         """
         super().__init__(parent)
+        self._license_manager = license_manager
 
         logger.info(f"Initializing {APP_NAME} v{APP_VERSION}")
 
@@ -98,6 +100,13 @@ class MainWindow(QMainWindow):
         settings_action.setShortcut("Ctrl+,")
         settings_action.triggered.connect(self._show_settings)
         file_menu.addAction(settings_action)
+
+        file_menu.addSeparator()
+
+        # Account / License action
+        account_action = QAction("&Account && License", self)
+        account_action.triggered.connect(self._show_account_dialog)
+        file_menu.addAction(account_action)
 
         file_menu.addSeparator()
 
@@ -188,6 +197,17 @@ class MainWindow(QMainWindow):
     def _show_about(self):
         """Show about dialog."""
         logger.info("About dialog requested")
+
+        tier_info = ""
+        if self._license_manager:
+            tier = self._license_manager.current_tier.upper()
+            email = self._license_manager.user_email or "Not logged in"
+            trial = " (Trial)" if self._license_manager.is_trial else ""
+            tier_info = (
+                f"<p><b>License:</b> {tier}{trial}</p>"
+                f"<p><b>Account:</b> {email}</p>"
+            )
+
         QMessageBox.about(
             self,
             f"About {APP_NAME}",
@@ -195,6 +215,7 @@ class MainWindow(QMainWindow):
             f"<p>Version {APP_VERSION}</p>"
             f"<p>Desktop application for downloading and organizing "
             f"Snapchat memories locally.</p>"
+            f"{tier_info}"
             f"<p><b>Features:</b></p>"
             f"<ul>"
             f"<li>Download memories from HTML exports</li>"
@@ -205,6 +226,13 @@ class MainWindow(QMainWindow):
             f"</ul>"
             f"<p>© 2026 Mohammed Haris</p>",
         )
+
+    def _show_account_dialog(self):
+        """Show the account/license dialog."""
+        if self._license_manager:
+            from .license_dialog import LicenseDialog
+            dialog = LicenseDialog(self._license_manager, parent=self, allow_skip=False)
+            dialog.exec()
 
     def closeEvent(self, event):
         """Handle window close event.

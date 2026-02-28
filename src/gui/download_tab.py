@@ -33,6 +33,8 @@ from ..utils.config import (
     DEFAULT_DOWNLOAD_DELAY,
     MIN_DOWNLOAD_DELAY,
     MAX_DOWNLOAD_DELAY,
+    TIER_FREE,
+    can_access_feature,
 )
 from ..utils.logger import get_logger
 
@@ -491,4 +493,26 @@ class DownloadTab(QWidget):
         if self._download_worker:
             self._download_worker.deleteLater()
             self._download_worker = None
+
+    def set_license_tier(self, tier: str):
+        """Enable/disable features based on the user's license tier.
+
+        Args:
+            tier: License tier (free, pro, premium)
+        """
+        pro_widgets = [
+            (self.embed_gps_checkbox, 'gps_embedding'),
+            (self.apply_overlays_checkbox, 'overlay_compositing'),
+            (self.convert_timezone_checkbox, 'timezone_conversion'),
+            (self.verify_button, 'verify_downloads'),
+        ]
+        for widget, feature in pro_widgets:
+            allowed = can_access_feature(tier, feature)
+            widget.setEnabled(allowed)
+            if not allowed:
+                widget.setChecked(False) if hasattr(widget, 'setChecked') else None
+                suffix = " (Pro)" if not allowed else ""
+                current_text = widget.text() if hasattr(widget, 'text') else ""
+                if suffix and suffix not in current_text:
+                    widget.setText(current_text + suffix)
 
