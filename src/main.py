@@ -4,8 +4,12 @@ This is the main entry point for the Snapchat Organizer Desktop application.
 It initializes the Qt application, creates the main window, and starts the event loop.
 """
 
+import logging
 import sys
 from pathlib import Path
+
+import sentry_sdk
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -24,6 +28,23 @@ from src.utils.config import APP_NAME, APP_VERSION, TIER_FREE, is_first_run, mar
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+# Initialize Sentry — error monitoring, logging, and metrics
+sentry_logging = LoggingIntegration(
+    level=logging.INFO,          # Capture INFO+ as breadcrumbs
+    event_level=logging.ERROR,   # Send ERROR+ as Sentry events
+)
+
+sentry_sdk.init(
+    dsn="https://2f36781c6e05b513d96d8f7f444e0fff@o4510963528237056.ingest.de.sentry.io/4510963531317328",
+    send_default_pii=True,
+    release=f"{APP_NAME}@{APP_VERSION}",
+    environment="development",
+    traces_sample_rate=1.0,
+    profiles_sample_rate=1.0,
+    enable_tracing=True,
+    integrations=[sentry_logging],
+)
 
 
 def main():

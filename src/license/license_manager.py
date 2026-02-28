@@ -14,6 +14,8 @@ import uuid
 import logging
 from typing import Optional, Dict, Any
 
+import sentry_sdk
+
 from ..utils.config import APP_DIR, TIER_FREE, DEVICE_LIMITS
 from .api_client import LicenseAPIClient, APIError
 
@@ -100,6 +102,14 @@ class LicenseManager:
         if response.get('success'):
             data = response['data']
             self._store_session(data)
+            # Set Sentry user context for error attribution
+            user = data.get('user', {})
+            sentry_sdk.set_user({
+                "id": str(user.get('id', '')),
+                "email": user.get('email'),
+                "username": user.get('name'),
+            })
+            sentry_sdk.set_tag("license.tier", data.get('license', {}).get('tier', TIER_FREE))
         return response
 
     def logout(self):
@@ -109,6 +119,7 @@ class LicenseManager:
                 self._api.logout()
         except APIError:
             pass  # Clear local data regardless
+        sentry_sdk.set_user(None)
         self._clear_local_data()
 
     # ── License validation ──

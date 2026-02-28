@@ -4,10 +4,13 @@ This module provides the OrganizeWorker class that runs the organization
 process in a separate thread to avoid blocking the UI.
 """
 
+import time
 from pathlib import Path
 from typing import Optional
 
 from PySide6.QtCore import QThread, Signal, Slot
+
+import sentry_sdk
 
 from .organizer import OrganizerCore
 from ..utils.logger import get_logger
@@ -78,44 +81,66 @@ class OrganizeWorker(QThread):
     
     def run(self):
         """Run the organization process in background thread."""
-        try:
-            logger.info(f"Starting organization: {self.export_path} -> {self.output_path}")
-            
-            # Create organizer with progress callback
-            self.organizer = OrganizerCore(
-                export_path=self.export_path,
-                output_path=self.output_path,
-                timestamp_threshold=self.timestamp_threshold,
-                match_score_threshold=self.match_score_threshold,
-                enable_tier1=self.enable_tier1,
-                enable_tier2=self.enable_tier2,
-                enable_tier3=self.enable_tier3,
-                organize_by_year=self.organize_by_year,
-                create_debug_report=self.create_debug_report,
-                preserve_originals=self.preserve_originals,
-                progress_callback=self._on_progress,
-            )
-            
-            # Run organization
-            success = self.organizer.organize()
-            
-            # Emit final statistics
-            self.stats_updated.emit(self.organizer.stats)
-            
-            if success:
-                message = self._format_success_message()
-                logger.info(f"Organization completed successfully: {message}")
-                self.finished.emit(True, message)
-            else:
-                message = "Organization was cancelled or encountered an error"
-                logger.warning(message)
-                self.finished.emit(False, message)
+        start_time = time.time()
+        
+        with sentry_sdk.start_span(op="organize", name="OrganizeWorker.run") as span:
+            try:
+                logger.info(f"Starting organization: {self.export_path} -> {self.output_path}")
                 
-        except Exception as e:
-            error_msg = f"Organization failed: {str(e)}"
-            logger.error(error_msg, exc_info=True)
-            self.error.emit(error_msg)
-            self.finished.emit(False, error_msg)
+                # Create organizer with progress callback
+                self.organizer = OrganizerCore(
+                    export_path=self.export_path,
+                    output_path=self.output_path,
+                    timestamp_threshold=self.timestamp_threshold,
+                    match_score_threshold=self.match_score_threshold,
+                    enable_tier1=self.enable_tier1,
+                    enable_tier2=self.enable_tier2,
+                    enable_tier3=self.enable_tier3,
+                    organize_by_year=self.organize_by_year,
+                    create_debug_report=self.create_debug_report,
+                    preserve_originals=self.preserve_originals,
+                    progress_callback=self._on_progress,
+                )
+                
+                # Run organization
+                success = self.organizer.organize()
+                
+                # Emit final statistics
+                self.stats_updated.emit(self.organizer.stats)
+                
+                # Record Sentry metrics
+                stats = self.organizer.stats
+                span.set_data("organize.total_files", stats.get("total", 0))
+                span.set_data("organize.organized", stats.get("organized", 0))
+                span.set_data("organize.unmatched", stats.get("unmatched", 0))
+                sentry_sdk.metrics.count("organize.files_organized", stats.get("organized", 0))
+                sentry_sdk.metrics.count("organize.files_unmatched", stats.get("unmatched", 0))
+                sentry_sdk.metrics.distribution(
+                    "organize.duration", time.time() - start_time, unit="second",
+                )
+                total = stats.get("total", 0)
+                if total > 0:
+                    sentry_sdk.metrics.gauge(
+                        "organize.success_rate",
+                        stats.get("organized", 0) / total * 100,
+                        unit="percent",
+                    )
+                
+                if success:
+                    message = self._format_success_message()
+                    logger.info(f"Organization completed successfully: {message}")
+                    self.finished.emit(True, message)
+                else:
+                    message = "Organization was cancelled or encountered an error"
+                    logger.warning(message)
+                    self.finished.emit(False, message)
+                    
+            except Exception as e:
+                sentry_sdk.capture_exception(e)
+                error_msg = f"Organization failed: {str(e)}"
+                logger.error(error_msg, exc_info=True)
+                self.error.emit(error_msg)
+                self.finished.emit(False, error_msg)
     
     @Slot()
     def cancel(self):

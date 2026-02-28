@@ -25,6 +25,11 @@ beautifulsoup4>=4.12.0         # HTML parsing for memories_history.html
 lxml>=4.9.0                    # XML/HTML parser (faster than html.parser)
 
 # ============================================================================
+# Error Monitoring
+# ============================================================================
+sentry-sdk>=2.0.0              # Sentry error monitoring and performance tracking
+
+# ============================================================================
 # Security & Encryption
 # ============================================================================
 cryptography>=41.0.0           # AES encryption for license storage

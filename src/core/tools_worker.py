@@ -4,10 +4,13 @@ This module provides QThread-based workers for executing tool operations
 without blocking the UI, with progress reporting and cancellation support.
 """
 
+import time
 from pathlib import Path
 from typing import Dict, Optional
 
 from PySide6.QtCore import QThread, Signal, Slot
+
+import sentry_sdk
 
 from .tools_core import ToolsCore
 from ..utils.logger import get_logger
@@ -52,38 +55,53 @@ class ToolsWorker(QThread):
     def run(self):
         """Execute the tool operation."""
         logger.info(f"Starting tool worker: {self.tool_name}")
+        start_time = time.time()
         
-        try:
-            # Create core instance
-            self._core = ToolsCore(self.target_folder)
+        with sentry_sdk.start_span(op="tool", name=f"ToolsWorker.{self.tool_name}") as span:
+            span.set_data("tool.name", self.tool_name)
             
-            # Execute the appropriate tool
-            if self.tool_name == "verify":
-                results = self._run_verify()
-            elif self.tool_name == "duplicates":
-                results = self._run_duplicates()
-            elif self.tool_name == "overlays":
-                results = self._run_overlays()
-            elif self.tool_name == "timezone":
-                results = self._run_timezone()
-            elif self.tool_name == "year":
-                results = self._run_year()
-            elif self.tool_name == "timestamp":
-                results = self._run_timestamp()
-            else:
-                raise ValueError(f"Unknown tool: {self.tool_name}")
-            
-            # Add tool name to results
-            results['tool_name'] = self.tool_name
-            
-            # Emit completion signal
-            self.tool_completed.emit(results)
-            logger.info(f"Tool worker completed: {self.tool_name}")
-            
-        except Exception as e:
-            error_msg = f"Tool failed: {str(e)}"
-            logger.error(error_msg, exc_info=True)
-            self.tool_failed.emit(error_msg)
+            try:
+                # Create core instance
+                self._core = ToolsCore(self.target_folder)
+                
+                # Execute the appropriate tool
+                if self.tool_name == "verify":
+                    results = self._run_verify()
+                elif self.tool_name == "duplicates":
+                    results = self._run_duplicates()
+                elif self.tool_name == "overlays":
+                    results = self._run_overlays()
+                elif self.tool_name == "timezone":
+                    results = self._run_timezone()
+                elif self.tool_name == "year":
+                    results = self._run_year()
+                elif self.tool_name == "timestamp":
+                    results = self._run_timestamp()
+                else:
+                    raise ValueError(f"Unknown tool: {self.tool_name}")
+                
+                # Add tool name to results
+                results['tool_name'] = self.tool_name
+                
+                # Record Sentry metrics
+                duration = time.time() - start_time
+                sentry_sdk.metrics.count("tool.runs", 1, attributes={"tool": self.tool_name})
+                sentry_sdk.metrics.distribution(
+                    "tool.duration", duration, unit="second",
+                    attributes={"tool": self.tool_name},
+                )
+                span.set_data("tool.duration_s", round(duration, 2))
+                
+                # Emit completion signal
+                self.tool_completed.emit(results)
+                logger.info(f"Tool worker completed: {self.tool_name}")
+                
+            except Exception as e:
+                sentry_sdk.capture_exception(e)
+                sentry_sdk.metrics.count("tool.failures", 1, attributes={"tool": self.tool_name})
+                error_msg = f"Tool failed: {str(e)}"
+                logger.error(error_msg, exc_info=True)
+                self.tool_failed.emit(error_msg)
     
     def cancel(self):
         """Cancel the running tool operation."""
