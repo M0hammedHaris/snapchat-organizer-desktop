@@ -673,6 +673,10 @@ class OrganizeTab(QWidget):
         """Update UI elements based on current state."""
         is_idle = not self._is_organizing
         
+        # Respect license lock — if locked, keep everything disabled
+        if getattr(self, '_license_locked', False):
+            return
+        
         self.browse_export_btn.setEnabled(is_idle)
         self.browse_output_btn.setEnabled(is_idle)
         self.start_btn.setEnabled(is_idle)
@@ -694,3 +698,64 @@ class OrganizeTab(QWidget):
         self.open_output_btn.setEnabled(
             bool(output_path) and Path(output_path).exists()
         )
+
+    def set_license_tier(self, tier: str):
+        """Enable/disable all controls based on license tier.
+
+        Free users can view the tab but cannot perform any operations.
+        A banner is shown prompting them to upgrade.
+
+        Args:
+            tier: License tier (free, pro, premium)
+        """
+        from ..utils.config import can_access_feature
+
+        allowed = can_access_feature(tier, 'organize_chat_media')
+        self._license_locked = not allowed
+
+        # All interactive widgets to lock/unlock
+        interactive_widgets = [
+            self.browse_export_btn,
+            self.browse_output_btn,
+            self.start_btn,
+            self.open_output_btn,
+            self.export_path_edit,
+            self.output_path_edit,
+            self.threshold_spinbox,
+            self.score_spinbox,
+            self.enable_tier1_checkbox,
+            self.enable_tier2_checkbox,
+            self.enable_tier3_checkbox,
+            self.organize_by_year_checkbox,
+            self.create_debug_report_checkbox,
+            self.preserve_originals_checkbox,
+        ]
+
+        for widget in interactive_widgets:
+            widget.setEnabled(allowed)
+
+        # Show/hide the upgrade banner
+        if not hasattr(self, '_upgrade_banner'):
+            self._upgrade_banner = QLabel(
+                "\U0001F512  This feature requires a Pro or Premium subscription.\n"
+                "Go to File → Account & License to upgrade."
+            )
+            self._upgrade_banner.setAlignment(Qt.AlignCenter)
+            self._upgrade_banner.setWordWrap(True)
+            self._upgrade_banner.setStyleSheet(
+                "QLabel {"
+                "  background-color: #FFF3E0;"
+                "  color: #E65100;"
+                "  border: 1px solid #FFB74D;"
+                "  border-radius: 6px;"
+                "  padding: 14px;"
+                "  font-size: 13px;"
+                "  font-weight: bold;"
+                "}"
+            )
+            # Insert at the top of the scroll content layout
+            scroll_area = self.layout().itemAt(0).widget()
+            content_layout = scroll_area.widget().layout()
+            content_layout.insertWidget(0, self._upgrade_banner)
+
+        self._upgrade_banner.setVisible(not allowed)

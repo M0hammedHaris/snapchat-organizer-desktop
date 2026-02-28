@@ -18,8 +18,9 @@ from src.gui.download_tab import DownloadTab
 from src.gui.organize_tab import OrganizeTab
 from src.gui.tools_tab import ToolsTab
 from src.gui.license_dialog import LicenseDialog
+from src.gui.onboarding_dialog import OnboardingDialog
 from src.license.license_manager import LicenseManager
-from src.utils.config import APP_NAME, APP_VERSION, TIER_FREE
+from src.utils.config import APP_NAME, APP_VERSION, TIER_FREE, is_first_run, mark_first_run_complete
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -43,6 +44,14 @@ def main():
     theme_manager = ThemeManager()
     theme_manager.apply_theme(app)
     theme_manager.start_monitoring(1000)  # Check every 1 second
+
+    # ── Onboarding carousel on first launch ──
+    if is_first_run():
+        logger.info("First run detected, showing onboarding carousel")
+        onboarding = OnboardingDialog()
+        onboarding.exec()
+        mark_first_run_complete()
+        logger.info("First run marked as complete")
 
     # ── License check ──
     license_manager = LicenseManager()
@@ -105,8 +114,7 @@ def main():
     window.tab_widget.setCurrentIndex(0)
 
     # Apply feature gating based on license tier
-    download_tab.set_license_tier(current_tier)
-    tools_tab.set_license_tier(current_tier)
+    window._apply_feature_gating(current_tier)
 
     # Show window
     window.show()

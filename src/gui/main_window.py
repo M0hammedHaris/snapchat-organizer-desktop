@@ -19,6 +19,7 @@ from pathlib import Path
 from ..utils.config import (
     APP_NAME,
     APP_VERSION,
+    TIER_FREE,
     WINDOW_MIN_WIDTH,
     WINDOW_MIN_HEIGHT,
     WINDOW_DEFAULT_WIDTH,
@@ -232,7 +233,45 @@ class MainWindow(QMainWindow):
         if self._license_manager:
             from .license_dialog import LicenseDialog
             dialog = LicenseDialog(self._license_manager, parent=self, allow_skip=False)
+            dialog.user_logged_out.connect(lambda: self._handle_logout(dialog))
             dialog.exec()
+
+    def _handle_logout(self, open_dialog):
+        """Handle user logout — force re-authentication.
+
+        Closes the current account dialog, hides the main window,
+        and shows the license dialog. If the user does not log in
+        or skip, the application quits.
+        """
+        open_dialog.reject()  # Close the account dialog
+
+        self.hide()
+        logger.info("User logged out, requiring re-authentication")
+
+        from .license_dialog import LicenseDialog
+        dialog = LicenseDialog(self._license_manager, parent=None, allow_skip=True)
+        if dialog.exec():
+            # User logged in or skipped — re-apply feature gating
+            tier = self._license_manager.current_tier
+            logger.info(f"Re-authenticated with tier: {tier}")
+            self._apply_feature_gating(tier)
+            self.show()
+        else:
+            # User closed the dialog — quit the app
+            logger.info("User closed login dialog after logout, quitting")
+            from PySide6.QtWidgets import QApplication
+            QApplication.instance().quit()
+
+    def _apply_feature_gating(self, tier: str):
+        """Apply feature gating to all tabs based on license tier.
+
+        Args:
+            tier: License tier (free, pro, premium)
+        """
+        for i in range(self.tab_widget.count()):
+            tab = self.tab_widget.widget(i)
+            if hasattr(tab, 'set_license_tier'):
+                tab.set_license_tier(tier)
 
     def closeEvent(self, event):
         """Handle window close event.

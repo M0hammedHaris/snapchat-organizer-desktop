@@ -64,6 +64,7 @@ class LicenseDialog(QDialog):
     """
 
     license_validated = Signal(str)  # Emits current tier
+    user_logged_out = Signal()        # Emitted when user logs out
 
     def __init__(
         self,
@@ -128,19 +129,19 @@ class LicenseDialog(QDialog):
         layout = QVBoxLayout(page)
         layout.setSpacing(10)
 
-        form = QFormLayout()
-        form.setSpacing(8)
-
+        layout.addWidget(QLabel("Email"))
         self._login_email = QLineEdit()
         self._login_email.setPlaceholderText("you@example.com")
-        form.addRow("Email:", self._login_email)
+        self._login_email.setMinimumHeight(34)
+        layout.addWidget(self._login_email)
 
+        layout.addSpacing(4)
+        layout.addWidget(QLabel("Password"))
         self._login_password = QLineEdit()
         self._login_password.setEchoMode(QLineEdit.Password)
         self._login_password.setPlaceholderText("Enter your password")
-        form.addRow("Password:", self._login_password)
-
-        layout.addLayout(form)
+        self._login_password.setMinimumHeight(34)
+        layout.addWidget(self._login_password)
 
         # Login button
         self._login_btn = QPushButton("Sign In")
@@ -177,28 +178,34 @@ class LicenseDialog(QDialog):
         layout = QVBoxLayout(page)
         layout.setSpacing(10)
 
-        form = QFormLayout()
-        form.setSpacing(8)
-
+        layout.addWidget(QLabel("Name"))
         self._reg_name = QLineEdit()
         self._reg_name.setPlaceholderText("Your Name")
-        form.addRow("Name:", self._reg_name)
+        self._reg_name.setMinimumHeight(34)
+        layout.addWidget(self._reg_name)
 
+        layout.addSpacing(4)
+        layout.addWidget(QLabel("Email"))
         self._reg_email = QLineEdit()
         self._reg_email.setPlaceholderText("you@example.com")
-        form.addRow("Email:", self._reg_email)
+        self._reg_email.setMinimumHeight(34)
+        layout.addWidget(self._reg_email)
 
+        layout.addSpacing(4)
+        layout.addWidget(QLabel("Password"))
         self._reg_password = QLineEdit()
         self._reg_password.setEchoMode(QLineEdit.Password)
         self._reg_password.setPlaceholderText("At least 8 characters")
-        form.addRow("Password:", self._reg_password)
+        self._reg_password.setMinimumHeight(34)
+        layout.addWidget(self._reg_password)
 
+        layout.addSpacing(4)
+        layout.addWidget(QLabel("Confirm Password"))
         self._reg_confirm = QLineEdit()
         self._reg_confirm.setEchoMode(QLineEdit.Password)
         self._reg_confirm.setPlaceholderText("Confirm your password")
-        form.addRow("Confirm:", self._reg_confirm)
-
-        layout.addLayout(form)
+        self._reg_confirm.setMinimumHeight(34)
+        layout.addWidget(self._reg_confirm)
 
         # Register button
         self._register_btn = QPushButton("Create Account")
@@ -357,6 +364,7 @@ class LicenseDialog(QDialog):
         self._license_manager.logout()
         self._show_status("Logged out.", error=False)
         self._stack.setCurrentIndex(0)
+        self.user_logged_out.emit()
 
     def _on_upgrade(self, tier: str):
         """Handle upgrade button click.
