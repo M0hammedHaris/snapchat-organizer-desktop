@@ -299,8 +299,26 @@ class DownloadCore:
         """
         try:
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                # Extract to temp directory
+                # Validate zip contents before extraction
+                MAX_ZIP_SIZE = 500 * 1024 * 1024  # 500 MB limit
+                total_size = sum(info.file_size for info in zip_ref.infolist())
+                if total_size > MAX_ZIP_SIZE:
+                    logger.error(f"ZIP too large ({total_size} bytes) for {sid}")
+                    return False
+
                 temp_dir = self.output_dir / f"temp_{sid}_extract"
+
+                # Safe extraction: reject entries with path traversal
+                for member in zip_ref.infolist():
+                    member_path = Path(member.filename)
+                    if member_path.is_absolute() or '..' in member_path.parts:
+                        logger.error(f"Malicious zip entry rejected: {member.filename}")
+                        return False
+                    resolved = (temp_dir / member.filename).resolve()
+                    if not str(resolved).startswith(str(temp_dir.resolve())):
+                        logger.error(f"Zip path traversal blocked: {member.filename}")
+                        return False
+
                 zip_ref.extractall(temp_dir)
                 
                 # Find the media file (usually the largest file)

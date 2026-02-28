@@ -74,6 +74,13 @@ def setup_logger(
     file_handler.setLevel(log_level)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
+
+    # Restrict log file permissions to owner-only
+    import os
+    try:
+        os.chmod(log_path, 0o600)
+    except OSError:
+        pass
     
     logger.debug(f"Logger initialized: {name} (level={LOG_LEVEL}, file={log_path})")
     

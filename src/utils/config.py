@@ -21,10 +21,14 @@ CACHE_PATH = APP_DIR / "cache"
 CONFIG_FILE = APP_DIR / "config.json"
 FIRST_RUN_MARKER = APP_DIR / ".first_run_complete"
 
-# Ensure directories exist
+# Ensure directories exist with restricted permissions (owner-only)
+import os as _os
 APP_DIR.mkdir(parents=True, exist_ok=True)
+_os.chmod(APP_DIR, 0o700)
 LOG_PATH.mkdir(parents=True, exist_ok=True)
+_os.chmod(LOG_PATH, 0o700)
 CACHE_PATH.mkdir(parents=True, exist_ok=True)
+_os.chmod(CACHE_PATH, 0o700)
 
 # Feature flags
 ENABLE_OVERLAY_COMPOSITING = True

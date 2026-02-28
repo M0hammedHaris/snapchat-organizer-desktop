@@ -325,11 +325,13 @@ class LicenseManager:
             self._data = {}
 
     def _save_local_data(self):
-        """Persist license data to disk."""
+        """Persist license data to disk with restricted permissions."""
+        import os
         try:
             APP_DIR.mkdir(parents=True, exist_ok=True)
             with open(LICENSE_DATA_FILE, 'w', encoding='utf-8') as f:
                 json.dump(self._data, f, indent=2)
+            os.chmod(LICENSE_DATA_FILE, 0o600)  # Owner read/write only
             logger.debug("Saved local license data")
         except Exception as e:
             logger.error(f"Failed to save license data: {e}")

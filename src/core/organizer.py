@@ -156,6 +156,13 @@ class OrganizerCore:
             return False
         
         try:
+            # Reject excessively large files to prevent memory exhaustion
+            MAX_JSON_SIZE = 200 * 1024 * 1024  # 200 MB
+            file_size = chat_json.stat().st_size
+            if file_size > MAX_JSON_SIZE:
+                logger.error(f"Chat history too large ({file_size} bytes), max {MAX_JSON_SIZE}")
+                return False
+
             with open(chat_json, "r", encoding="utf-8") as f:
                 chats = json.load(f)
             
