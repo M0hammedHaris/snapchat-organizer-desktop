@@ -392,6 +392,11 @@ class LicenseDialog(QDialog):
         # Fall back to opening Stripe checkout in browser
         url = mgr.get_checkout_url(tier)
         if url:
+            # Validate URL before opening in browser
+            from urllib.parse import urlparse
+            parsed = urlparse(url)
+            if parsed.scheme != 'https':
+                raise APIError("Invalid checkout URL: must be HTTPS.")
             webbrowser.open(url)
             return {
                 'success': True,

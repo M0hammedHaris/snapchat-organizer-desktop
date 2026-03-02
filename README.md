@@ -10,13 +10,13 @@
 
 ## 🎯 Project Overview
 
-**Status:** ✅ MVP Complete - Alpha Ready for Testing  
-**Version:** 1.0.2-alpha (UI/Theme Improvements)  
+**Status:** Beta Testing  
+**Version:** 1.0.0-beta.1  
 **Repository:** https://github.com/M0hammedHaris/snapchat-organizer-desktop  
 **License:** Proprietary - All Rights Reserved  
-**Last Updated:** January 13, 2026
+**Last Updated:** February 28, 2026
 
-> **🎉 Latest:** v1.0.2-alpha released! Dynamic light/dark theme support + improved UI consistency across all dialogs.
+> **🎉 Latest:** v1.0.0-beta.1 released! Subscription licensing, onboarding carousel, dynamic theming, and Sentry crash reporting.
 
 ### What It Does
 
@@ -39,6 +39,10 @@ Snapchat Organizer Desktop is a comprehensive desktop application that:
 ✅ **Real-time progress tracking** - Progress bars with detailed status messages  
 ✅ **Resume capability** - Continue interrupted downloads/processing  
 ✅ **Smart 3-tier matching** - Intelligent media-to-contact association  
+✅ **Subscription licensing** - Free / Pro / Premium tiers with Stripe  
+✅ **Dynamic theming** - Auto light/dark mode matching your system  
+✅ **Onboarding carousel** - Guided first-run experience  
+✅ **Crash reporting** - Sentry integration for stability  
 ✅ **Integrated help system** - F1 for complete download guide  
 ✅ **Settings framework** - Customize paths, behavior, and defaults  
 ✅ **100% private** - All processing happens locally, nothing uploaded  
@@ -111,28 +115,23 @@ snapchat-organizer-desktop/
 
 **Complete App Ready to Use** - Download from GitHub Release with the full-featured application included:
 
-**🔗 [👉 Go to Release Downloads](https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.2-alpha)**
+**🔗 [👉 Go to Release Downloads](https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases)**
 
 **macOS Installation:**
-1. Download `Snapchat-Organizer-1.0.2-alpha.dmg` from the release page
+1. Download `Snapchat-Organizer-macOS.dmg` from the release page
 2. Open the DMG and drag the app to Applications
 3. **Right-click** the app in Applications → Select **"Open"**
 4. Click **"Open"** in the security dialog (one-time only)
-5. App launches with all features ready:
-   - ✅ Download memories tab
-   - ✅ Organize chat media tab
-   - ✅ Tools tab (6 utilities)
-   - ✅ Settings with full configuration
-   - ✅ Integrated help system
-   - ✅ No additional setup needed!
+5. Complete the onboarding carousel and register/skip
+6. **📖 Detailed Guide:** See [MACOS_INSTALLATION_BETA.md](docs/releases/beta/MACOS_INSTALLATION_BETA.md)
 
 **Windows Installation:**
 1. Download `Snapchat-Organizer-Windows.zip` from the release page
-2. Extract the ZIP to a permanent location (e.g., `C:\Program Files\Snapchat Organizer\`)
-3. **Double-click** `Snapchat Organizer.exe`
+2. Extract the ZIP to `C:\SnapchatOrganizer\`
+3. Run `SnapchatOrganizer.exe`
 4. When Windows SmartScreen appears, click **"More info"** → **"Run anyway"**
-5. App launches with all features ready!
-6. **📖 Detailed Windows Guide:** See [WINDOWS_INSTALLATION.md](docs/releases/alpha/WINDOWS_INSTALLATION.md)
+5. Complete the onboarding carousel and register/skip
+6. **📖 Detailed Guide:** See [WINDOWS_INSTALLATION_BETA.md](docs/releases/beta/WINDOWS_INSTALLATION_BETA.md)
 
 **Linux:** Pre-built packages available. Use `Snapchat-Organizer-Linux.tar.gz` from releases.
 
@@ -175,7 +174,7 @@ Due to Apple's security policies for apps not distributed through the App Store,
 - **No danger:** The app is code-signed and completely safe - all processing happens locally on your Mac
 - **No phone home:** Your data never leaves your device
 
-For more details, see [MACOS_INSTALLATION.md](docs/releases/alpha/MACOS_INSTALLATION.md)
+For more details, see [MACOS_INSTALLATION_BETA.md](docs/releases/beta/MACOS_INSTALLATION_BETA.md)
 
 ### 🪟 Windows Security Note
 
@@ -188,7 +187,7 @@ Due to Windows SmartScreen protection, you may see a warning on first launch. Th
 - **No network activity:** Your data never leaves your device (except when downloading from Snapchat URLs)
 - **Open source:** All code is reviewable on GitHub
 
-For detailed instructions with screenshots, see [WINDOWS_INSTALLATION.md](docs/releases/alpha/WINDOWS_INSTALLATION.md)
+For detailed instructions with screenshots, see [WINDOWS_INSTALLATION_BETA.md](docs/releases/beta/WINDOWS_INSTALLATION_BETA.md)
 
 ---
 
@@ -312,10 +311,10 @@ git commit -m "docs(readme): update installation instructions"
 ## 📚 Documentation
 
 ### Getting Help
-- **Installation Issues:** [MACOS_INSTALLATION.md](docs/releases/alpha/MACOS_INSTALLATION.md)
-- **Gatekeeper Workarounds:** [MACOS_GATEKEEPER_FIX.md](docs/releases/alpha/MACOS_GATEKEEPER_FIX.md)
-- **Alpha Testing Guide:** [ALPHA_TESTING_GUIDE.md](docs/releases/alpha/ALPHA_TESTING_GUIDE.md)
-- **Release Notes:** [GITHUB_RELEASE_NOTES.md](GITHUB_RELEASE_NOTES.md)
+- **Installation (macOS):** [MACOS_INSTALLATION_BETA.md](docs/releases/beta/MACOS_INSTALLATION_BETA.md)
+- **Installation (Windows):** [WINDOWS_INSTALLATION_BETA.md](docs/releases/beta/WINDOWS_INSTALLATION_BETA.md)
+- **Beta Testing Guide:** [BETA_TESTING_GUIDE.md](docs/releases/beta/BETA_TESTING_GUIDE.md)
+- **Release Notes:** [BETA_RELEASE_NOTES.md](docs/releases/beta/BETA_RELEASE_NOTES.md)
 
 ### Development References
 - **Copilot Instructions:** [.github/copilot-instructions.md](.github/copilot-instructions.md)
@@ -358,7 +357,7 @@ This software is licensed for use only. You may not distribute, modify, reverse 
 
 - Original CLI scripts from [snapchat-memory-downloader](https://github.com/shoeless03/snapchat-memory-downloader)
 - Built with [PySide6](https://doc.qt.io/qtforpython-6/) (Qt for Python, LGPL licensed)
-- PoBuild Documentation:** See [docs/releases/alpha/](docs/releases/alpha/) for build, testing, and distribution guides
+- PoBuild Documentation:** See [docs/releases/beta/](docs/releases/beta/) for build, testing, and distribution guides
 - **Code Guidelines:** See [.github/copilot-instructions.md](.github/copilot-instructions.md) for development standards
 - **Tools Documentation:** See [docs/tools/](docs/tools/) for detailed tool implementations
 - **Business Plan:** See parent directory `Snapchat_Media_Organizer-Desktop_Saas.md` and `SAAS_CONVERSION_PLAN.md`

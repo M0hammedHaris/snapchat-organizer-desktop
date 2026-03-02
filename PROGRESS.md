@@ -3,12 +3,12 @@
 **Project:** Snapchat Organizer Desktop MVP  
 **Repository:** M0hammedHaris/snapchat-organizer-desktop  
 **Started:** January 11, 2026  
-**Current Phase:** Alpha Release - Public Testing (v1.0.2-alpha)  
-**Status:** 🚀 RELEASED v1.0.2-alpha - UI/Theme Improvements
+**Current Phase:** Beta Release Preparation (v1.0.0-beta.1)  
+**Status:** 🚀 PREPARING v1.0.0-beta.1 - Beta Release
 
 ---
 
-## 🎯 Overall Progress: 100% Phase 1 Complete + Alpha Release v1.0.2! 🎉
+## 🎯 Overall Progress: Phase 1 ✅ + Alpha ✅ + Beta Prep 🚧
 
 ### Phase 1: Foundation & MVP (Week 1-2) - 100% Complete ✅
 ### 🚀 Alpha Release - January 12, 2026 ✅
@@ -173,6 +173,30 @@
   - Window icon support
 - **Release:** https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.2-alpha
 
+### 🚀 Beta Release 1 Preparation (v1.0.0-beta.1)
+#### ✅ COMPLETED
+- [x] Version bump: `1.0.0-alpha` → `1.0.0-beta.1` in `src/main.py`, `src/utils/config.py`
+- [x] Build infrastructure: Updated `scripts/build_macos.sh`, `snapchat-organizer.spec`, `file_version_info.txt`
+- [x] GitHub Actions: Rewrote release notes in `.github/workflows/build-release.yml` for beta
+- [x] Documentation: Created 6 beta docs in `docs/releases/beta/`
+  - README_BETA.md, BETA_TESTING_GUIDE.md, BETA_RELEASE_NOTES.md
+  - MACOS_INSTALLATION_BETA.md, WINDOWS_INSTALLATION_BETA.md
+  - PRE_RELEASE_CHECKLIST_BETA.md
+- [x] README.md: Updated status, version, features, download links, doc references
+- [x] Security audit (per security-audit skill):
+  - Fixed Sentry PII exposure (removed email/username, kept user ID only)
+  - Added explicit `shell=False` to subprocess calls in license_manager.py
+  - Fixed path traversal in downloader.py (string check → `Path.relative_to()`)
+  - Added HTTPS URL validation before `webbrowser.open()` in license_dialog.py
+  - Hardened directory permissions (`0o700`) for app data directory
+  - Changed Sentry environment from `"development"` to `"beta"`
+
+#### 📋 PENDING
+- [ ] Git commit all beta preparation changes
+- [ ] Create and push tag `v1.0.0-beta.1` to trigger GitHub Actions build
+- [ ] Verify builds on all 3 platforms (macOS, Windows, Linux)
+- [ ] Publish GitHub release with beta documentation
+
 ---
 
 ## 📊 Metrics
@@ -264,62 +288,35 @@
 
 ## 🎯 Next Session Goals (CRITICAL)
 
-**Primary Focus:** Alpha Testing & Phase 2 Kickoff
+**Primary Focus:** Beta Release 1 — Build, Verify & Publish
 
-### IMMEDIATE (Alpha Testing - Week 3-4)
-1. **Distribute to Friends** (DONE - Ready to send ✅)
-   - Use snapchat-organizer-alpha.zip
-   - Follow DISTRIBUTION_GUIDE.md for sending instructions
-   - Share ALPHA_TESTING_GUIDE.md with testers
-   - Set up feedback collection (GitHub issues or Google Form)
+### IMMEDIATE (Beta Release)
+1. **Commit & Tag** (Ready ✅)
+   - Git commit all beta preparation changes
+   - Create and push tag `v1.0.0-beta.1` to trigger GitHub Actions
+   - Follow `docs/releases/beta/PRE_RELEASE_CHECKLIST_BETA.md`
 
-2. **Collect Feedback** (1-2 weeks)
-   - Monitor GitHub issues for bug reports
-   - Track installation success rate
-   - Gather feature requests and UX feedback
-   - Identify critical bugs vs. nice-to-haves
+2. **Verify Builds** (After CI completes)
+   - Download artifacts from GitHub Actions for all 3 platforms
+   - Test macOS DMG installation + Gatekeeper bypass
+   - Test Windows ZIP extraction + SmartScreen bypass
+   - Test Linux tarball execution
+   - Verify license flow (register, login, tier access)
 
-3. **Iterate Based on Feedback** (As needed)
-   - Fix critical bugs immediately
-   - Plan UX improvements for Phase 2
-   - Update documentation based on confusion points
+3. **Publish & Distribute**
+   - Create GitHub Release from tag with beta documentation
+   - Share BETA_TESTING_GUIDE.md with testers
+   - Monitor feedback via GitHub Issues
 
-### SHORT-TERM (Phase 2 Kickoff - Week 4-5)
-1. **License System Foundation** (3-4 hours)
-   - Create SQLAlchemy database models for licenses
-   - Design license key generation algorithm
-   - Implement device fingerprinting (hardware ID)
-   - Create license validation logic
-   - Build trial mode (7-day Pro access counter)
-   - Create license dialog UI
+### SHORT-TERM (Post-Beta Iteration)
+1. **Bug Fixes** — Address critical issues from beta testers
+2. **Stripe Integration Testing** — End-to-end payment flow verification
+3. **Tools Tab Completion** — GPS extraction, timezone conversion, overlay compositing
 
-2. **Lemonsqueezy Integration**
-   - Set up Lemonsqueezy account and products
-   - Implement webhook handlers for license activation
-   - Create license verification API calls
-   - Build device management UI (activate/deactivate devices)
-   - Test payment flow end-to-end
-
-3. **Complete Phase 2 Tools** (Medium priority)
-   - Implement GPS coordinate extraction from images
-   - Implement timezone conversion using GPS + timezonefinder
-   - Implement overlay compositing using PIL/piexif
-   - Test with real overlay and GPS data
-
-### LONG-TERM (Phase 3+ - Weeks 5-6)
-1. **Distribution & Signing**
-   - Create installer/packaging scripts
-   - macOS code signing & notarization
-   - Windows code signing  
-   - Bundle FFmpeg + ExifTool
-   - Create update mechanism
-   
-2. **Public Release**
-   - Create comprehensive marketing materials
-   - Create demo video/screenshots
-   - Set up GitHub releases infrastructure
-   - ProductHunt launch preparation
-   - Beta testing with wider audience
+### LONG-TERM (Towards Stable Release)
+1. **Code Signing** — macOS notarization, Windows Authenticode
+2. **Auto-Update** — In-app update mechanism
+3. **Public Launch** — Marketing materials, demo video, ProductHunt
 
 ---
 
@@ -356,30 +353,34 @@
 ### Alpha Release Build ✅
 - **v1.0.0-alpha** - January 12, 2026
 - **v1.0.1-alpha** - January 13, 2026 (Windows SmartScreen Fix)
-- **v1.0.2-alpha** - January 13, 2026 ⭐ CURRENT RELEASE (UI/Theme Improvements)
+- **v1.0.2-alpha** - January 13, 2026 (UI/Theme Improvements)
 - **Released:** January 13, 2026
 - **Tag:** v1.0.2-alpha
 - **Commit:** 0c9e52b (docs: update to v1.0.2-alpha with UI/theme improvements)
+- **Documentation:** [BUILD_SUMMARY.md](docs/releases/alpha/BUILD_SUMMARY.md)
+
+### Beta Release Build 🚧
+- **v1.0.0-beta.1** ⭐ CURRENT RELEASE (in preparation)
+- **New Since Alpha:** Subscription system, onboarding flow, Sentry crash reporting, dark/light theming, security hardening
 - **Platforms:** macOS, Windows, Linux (via GitHub Actions)
-- **Icons:** 10+ icons (app icons in multiple sizes + tab-specific icons)
-- **Stylesheets:** light.qss and dark.qss (500+ lines each)
 - **Build Tool:** PyInstaller 6.0+ with custom .spec configuration
 - **Distribution:** GitHub Releases (automatic via workflow)
-- **Download:** https://github.com/M0hammedHaris/snapchat-organizer-desktop/releases/tag/v1.0.2-alpha
-- **Documentation:** [BUILD_SUMMARY.md](docs/releases/alpha/BUILD_SUMMARY.md)
+- **Documentation:** [docs/releases/beta/](docs/releases/beta/)
 
 ### Reference Documentation
 - **Copilot Instructions:** [.github/copilot-instructions.md](.github/copilot-instructions.md) (843 lines)
 - **Tools Documentation:** [docs/tools/](docs/tools/) (600+ lines)
-- **Build Guide:** [docs/releases/alpha/BUILD_SUMMARY.md](docs/releases/alpha/BUILD_SUMMARY.md)
-- **Alpha Testing Guide:** [ALPHA_TESTING_GUIDE.md](docs/releases/alpha/ALPHA_TESTING_GUIDE.md)
+- **Alpha Build Guide:** [docs/releases/alpha/BUILD_SUMMARY.md](docs/releases/alpha/BUILD_SUMMARY.md)
+- **Beta Testing Guide:** [docs/releases/beta/BETA_TESTING_GUIDE.md](docs/releases/beta/BETA_TESTING_GUIDE.md)
+- **Beta Release Notes:** [docs/releases/beta/BETA_RELEASE_NOTES.md](docs/releases/beta/BETA_RELEASE_NOTES.md)
+- **Pre-Release Checklist:** [docs/releases/beta/PRE_RELEASE_CHECKLIST_BETA.md](docs/releases/beta/PRE_RELEASE_CHECKLIST_BETA.md)
 - **Code Statistics:** See PROGRESS.md for up-to-date metrics
 
 ---
 
-**Last Updated:** January 13, 2026 - 03:30 UTC  
+**Last Updated:** February 28, 2026  
 **Updated By:** GitHub Copilot  
-**Session Duration:** ~1 hour (v1.0.2-alpha release with UI/theme improvements)
+**Session:** Beta Release 1 preparation (v1.0.0-beta.1) — version bumps, documentation, security audit & fixes
 **Current Status:** 🚀 v1.0.2-alpha RELEASED - Dynamic light/dark theme support + improved UI consistency  
 **Next Critical Milestone:** Distribute to alpha testers, collect feedback (1-2 weeks)  
 **Phase 1 Completion Date:** January 12, 2026  

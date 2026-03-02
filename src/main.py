@@ -20,7 +20,7 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 
 # Minimal version/name constants so Sentry init doesn't depend on our modules
 _APP_NAME = "Snapchat Organizer"
-_APP_VERSION = "1.0.0-alpha"
+_APP_VERSION = "1.0.0-beta.1"
 
 sentry_logging = LoggingIntegration(
     level=logging.INFO,          # Capture INFO+ as breadcrumbs
@@ -31,7 +31,7 @@ sentry_sdk.init(
     dsn="https://2f36781c6e05b513d96d8f7f444e0fff@o4510963528237056.ingest.de.sentry.io/4510963531317328",
     send_default_pii=True,
     release=f"{_APP_NAME}@{_APP_VERSION}",
-    environment="development",
+    environment="beta",
     traces_sample_rate=1.0,
     profiles_sample_rate=1.0,
     enable_tracing=True,

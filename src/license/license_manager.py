@@ -102,12 +102,10 @@ class LicenseManager:
         if response.get('success'):
             data = response['data']
             self._store_session(data)
-            # Set Sentry user context for error attribution
+            # Set Sentry user context for error attribution (no PII)
             user = data.get('user', {})
             sentry_sdk.set_user({
                 "id": str(user.get('id', '')),
-                "email": user.get('email'),
-                "username": user.get('name'),
             })
             sentry_sdk.set_tag("license.tier", data.get('license', {}).get('tier', TIER_FREE))
         return response
@@ -300,7 +298,8 @@ class LicenseManager:
                 import subprocess
                 result = subprocess.run(
                     ['ioreg', '-rd1', '-c', 'IOPlatformExpertDevice'],
-                    capture_output=True, text=True, timeout=5
+                    capture_output=True, text=True, timeout=5,
+                    shell=False,
                 )
                 for line in result.stdout.split('\n'):
                     if 'IOPlatformSerialNumber' in line:
@@ -311,7 +310,8 @@ class LicenseManager:
                 import subprocess
                 result = subprocess.run(
                     ['wmic', 'csproduct', 'get', 'UUID'],
-                    capture_output=True, text=True, timeout=5
+                    capture_output=True, text=True, timeout=5,
+                    shell=False,
                 )
                 lines = [line.strip() for line in result.stdout.split('\n') if line.strip()]
                 if len(lines) > 1:
@@ -340,6 +340,7 @@ class LicenseManager:
         import os
         try:
             APP_DIR.mkdir(parents=True, exist_ok=True)
+            os.chmod(APP_DIR, 0o700)  # Owner-only access on directory
             with open(LICENSE_DATA_FILE, 'w', encoding='utf-8') as f:
                 json.dump(self._data, f, indent=2)
             os.chmod(LICENSE_DATA_FILE, 0o600)  # Owner read/write only

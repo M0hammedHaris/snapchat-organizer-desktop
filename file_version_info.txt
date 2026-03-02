@@ -37,7 +37,7 @@ VSVersionInfo(
         StringStruct(u'LegalCopyright', u'Copyright © 2026 Mohammed Haris. All rights reserved.'),
         StringStruct(u'OriginalFilename', u'SnapchatOrganizer.exe'),
         StringStruct(u'ProductName', u'Snapchat Organizer Desktop'),
-        StringStruct(u'ProductVersion', u'1.0.0-alpha')])
+        StringStruct(u'ProductVersion', u'1.0.0-beta.1')])
       ]
     ),
     VarFileInfo([VarStruct(u'Translation', [1033, 1200])])

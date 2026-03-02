@@ -314,8 +314,9 @@ class DownloadCore:
                     if member_path.is_absolute() or '..' in member_path.parts:
                         logger.error(f"Malicious zip entry rejected: {member.filename}")
                         return False
-                    resolved = (temp_dir / member.filename).resolve()
-                    if not str(resolved).startswith(str(temp_dir.resolve())):
+                    try:
+                        (temp_dir / member.filename).resolve().relative_to(temp_dir.resolve())
+                    except ValueError:
                         logger.error(f"Zip path traversal blocked: {member.filename}")
                         return False
 

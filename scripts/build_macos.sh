@@ -59,11 +59,11 @@ if [ -d "dist/Snapchat Organizer.app" ]; then
         hdiutil create -volname "Snapchat Organizer" \
                        -srcfolder dist/dmg \
                        -ov -format UDZO \
-                       "dist/Snapchat-Organizer-1.0.0-alpha.dmg"
+                       "dist/Snapchat-Organizer-1.0.0-beta.1.dmg"
         
         rm -rf dist/dmg
         
-        echo "✅ DMG created: dist/Snapchat-Organizer-1.0.0-alpha.dmg"
+        echo "✅ DMG created: dist/Snapchat-Organizer-1.0.0-beta.1.dmg"
     fi
     
     echo ""

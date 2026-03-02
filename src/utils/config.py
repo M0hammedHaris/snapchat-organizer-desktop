@@ -9,7 +9,7 @@ from typing import Dict, Any
 
 # Application metadata
 APP_NAME = "Snapchat Organizer"
-APP_VERSION = "1.0.0-alpha"
+APP_VERSION = "1.0.0-beta.1"
 APP_AUTHOR = "Mohammed Haris"
 APP_ORG = "Mac Hive"
 
