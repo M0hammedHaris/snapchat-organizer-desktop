@@ -192,17 +192,17 @@ def create_icon():
                 ["iconutil", "-c", "icns", iconset_dir, "-o", icns_path],
                 check=True, capture_output=True
             )
-            print(f"🍎 Created macOS icon: {icns_path}")
+            print(f"[macOS] Created macOS icon: {icns_path}")
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
-            print(f"⚠️  Could not create .icns (iconutil not available): {e}")
+            print(f"[WARNING] Could not create .icns (iconutil not available): {e}")
     else:
-        print("🍎 Skipping .icns generation (not on macOS)")
+        print("[macOS] Skipping .icns generation (not on macOS)")
 
-    print("✅ Icons created successfully!")
-    print(f"📂 Location: {icon_dir}")
-    print(f"📦 Created: {len(sizes)} PNG files + icon.png + icon.ico")
-    print(f"🎨 Design: Snapchat ghost + folder organizer badge")
-    print(f"🎨 Style: Modern, clean, professional")
+    print("Icons created successfully!")
+    print(f"Location: {icon_dir}")
+    print(f"Created: {len(sizes)} PNG files + icon.png + icon.ico")
+    print(f"Design: Snapchat ghost + folder organizer badge")
+    print(f"Style: Modern, clean, professional")
 
 if __name__ == "__main__":
     create_icon()
