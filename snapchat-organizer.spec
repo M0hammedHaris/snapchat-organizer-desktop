@@ -10,6 +10,7 @@ Windows notes:
 """
 
 import sys
+import glob
 from pathlib import Path
 
 block_cipher = None
@@ -51,16 +52,17 @@ a = Analysis(
     pathex=[str(project_root)],
     binaries=extra_binaries,
     datas=[
-        # Include resources
-        ('resources/icons/*.png', 'resources/icons'),
-        ('resources/icons/*.icns', 'resources/icons'),
-        ('resources/icons/*.ico', 'resources/icons'),
+        entry for entry in [
+        # Include resources — only include icon formats that exist
+        ('resources/icons/*.png', 'resources/icons') if glob.glob('resources/icons/*.png') else None,
+        ('resources/icons/*.icns', 'resources/icons') if glob.glob('resources/icons/*.icns') else None,
+        ('resources/icons/*.ico', 'resources/icons') if glob.glob('resources/icons/*.ico') else None,
         # Include documentation
-        ('docs/releases/beta/BETA_TESTING_GUIDE.md', 'docs'),
-        ('docs/releases/beta/README_BETA.md', 'docs'),
+        ('docs/releases/beta/BETA_TESTING_GUIDE.md', 'docs') if Path('docs/releases/beta/BETA_TESTING_GUIDE.md').exists() else None,
+        ('docs/releases/beta/README_BETA.md', 'docs') if Path('docs/releases/beta/README_BETA.md').exists() else None,
         ('README.md', '.'),
         ('LICENSE', '.'),
-    ],
+    ] if entry is not None],
     hiddenimports=[
         'PySide6.QtCore',
         'PySide6.QtGui',
@@ -104,7 +106,9 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='resources/icons/icon.icns' if is_macos else 'resources/icons/icon.ico',
+    icon=('resources/icons/icon.icns' if Path('resources/icons/icon.icns').exists() else
+          ('resources/icons/icon.png' if Path('resources/icons/icon.png').exists() else None)) if is_macos else
+         ('resources/icons/icon.ico' if Path('resources/icons/icon.ico').exists() else None),
     version='file_version_info.txt' if is_windows else None,
     uac_admin=False,  # Don't request admin privileges
     uac_uiaccess=False,
@@ -142,7 +146,8 @@ if is_macos:
     app = BUNDLE(
         coll,
         name='Snapchat Organizer.app',
-        icon='resources/icons/icon.icns',
+        icon='resources/icons/icon.icns' if Path('resources/icons/icon.icns').exists() else
+              ('resources/icons/icon.png' if Path('resources/icons/icon.png').exists() else None),
     bundle_identifier='com.mohammedharis.snapchat-organizer',
     version='1.0.0-beta.1',
     info_plist={

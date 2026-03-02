@@ -8,6 +8,7 @@ and folder organization badge.
 
 from PIL import Image, ImageDraw
 import os
+import sys
 
 def create_icon():
     """Create application icon in multiple sizes with improved design."""
@@ -163,12 +164,45 @@ def create_icon():
         sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)]
     )
     
+    # Generate macOS .icns using iconutil (macOS only) or Pillow fallback
+    icns_path = os.path.join(icon_dir, "icon.icns")
+    if sys.platform == 'darwin':
+        import subprocess
+        import tempfile
+        iconset_dir = os.path.join(tempfile.mkdtemp(), "icon.iconset")
+        os.makedirs(iconset_dir, exist_ok=True)
+        # macOS iconset requires specific filenames
+        iconset_sizes = [
+            (16, "icon_16x16.png"),
+            (32, "icon_16x16@2x.png"),
+            (32, "icon_32x32.png"),
+            (64, "icon_32x32@2x.png"),
+            (128, "icon_128x128.png"),
+            (256, "icon_128x128@2x.png"),
+            (256, "icon_256x256.png"),
+            (512, "icon_256x256@2x.png"),
+            (512, "icon_512x512.png"),
+            (1024, "icon_512x512@2x.png"),
+        ]
+        for sz, fname in iconset_sizes:
+            resized = img.resize((sz, sz), Image.Resampling.LANCZOS)
+            resized.save(os.path.join(iconset_dir, fname))
+        try:
+            subprocess.run(
+                ["iconutil", "-c", "icns", iconset_dir, "-o", icns_path],
+                check=True, capture_output=True
+            )
+            print(f"🍎 Created macOS icon: {icns_path}")
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            print(f"⚠️  Could not create .icns (iconutil not available): {e}")
+    else:
+        print("🍎 Skipping .icns generation (not on macOS)")
+
     print("✅ Icons created successfully!")
     print(f"📂 Location: {icon_dir}")
     print(f"📦 Created: {len(sizes)} PNG files + icon.png + icon.ico")
     print(f"🎨 Design: Snapchat ghost + folder organizer badge")
     print(f"🎨 Style: Modern, clean, professional")
-    print("\n🍎 Note: macOS .icns will be created separately")
 
 if __name__ == "__main__":
     create_icon()
